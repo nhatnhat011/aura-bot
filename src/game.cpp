@@ -114,10 +114,10 @@ CGame::CGame(CAura* nAura, CMap* nMap, uint16_t nHostPort, uint8_t nGameState, s
   // start listening for connections
 
   if (!m_Aura->m_BindAddress.empty())
-    Print("[GAME: " + m_GameName + "] attempting to bind to address [" + m_Aura->m_BindAddress + "]");
+    Print2("[GAME: " + m_GameName + "] attempting to bind to address [" + m_Aura->m_BindAddress + "]");
 
   if (m_Socket->Listen(m_Aura->m_BindAddress, m_HostPort))
-    Print("[GAME: " + m_GameName + "] listening on port " + to_string(m_HostPort));
+    Print2("[GAME: " + m_GameName + "] listening on port " + to_string(m_HostPort));
   else
   {
     Print2("[GAME: " + m_GameName + "] error listening on port " + to_string(m_HostPort));
@@ -400,7 +400,7 @@ bool CGame::Update(void* fd, void* send_fd)
           player->SetLagging(true);
           player->SetStartedLaggingTicks(Ticks);
           m_Lagging            = true;
-          m_StartedLaggingTime = Time;
+          m_StartedLaggingTime = GetTime();
 
           if (LaggingString.empty())
             LaggingString = player->GetName();
@@ -413,7 +413,7 @@ bool CGame::Update(void* fd, void* send_fd)
       {
         // start the lag screen
 
-        Print("[GAME: " + m_GameName + "] started lagging on [" + LaggingString + "]");
+        Print2("[GAME: " + m_GameName + "] started lagging on [" + LaggingString + "]");
         SendAll(m_Protocol->SEND_W3GS_START_LAG(m_Players));
 
         // reset everyone's drop vote
@@ -496,7 +496,7 @@ bool CGame::Update(void* fd, void* send_fd)
         {
           // stop the lag screen for this player
 
-          Print("[GAME: " + m_GameName + "] stopped lagging on [" + player->GetName() + "]");
+          Print2("[GAME: " + m_GameName + "] stopped lagging on [" + player->GetName() + "]");
           SendAll(m_Protocol->SEND_W3GS_STOP_LAG(player));
           player->SetLagging(false);
           player->SetStartedLaggingTicks(0);
@@ -539,8 +539,8 @@ bool CGame::Update(void* fd, void* send_fd)
 
   if (m_Players.empty() && (m_GameLoading || m_GameLoaded))
   {
-    Print("[GAME: " + m_GameName + "] is over (no players left)");
-    Print("[GAME: " + m_GameName + "] saving game data to database");
+    Print2("[GAME: " + m_GameName + "] is over (no players left)");
+    Print2("[GAME: " + m_GameName + "] saving game data to database");
 
     return true;
   }
@@ -572,7 +572,7 @@ bool CGame::Update(void* fd, void* send_fd)
 
   if (m_Players.size() == m_Aura->m_NumPlayersToStartGameOver && m_FakePlayers.empty() && m_GameOverTime == 0 && (m_GameLoading || m_GameLoaded))
   {
-    Print("[GAME: " + m_GameName + "] gameover timer started (" + std::to_string(m_Players.size()) + " player(s) left)");
+    Print2("[GAME: " + m_GameName + "] gameover timer started (" + std::to_string(m_Players.size()) + " player(s) left)");
     m_GameOverTime = Time;
   }
 
@@ -584,7 +584,7 @@ bool CGame::Update(void* fd, void* send_fd)
     {
       if (!player->GetDeleteMe())
       {
-        Print("[GAME: " + m_GameName + "] is over (gameover timer finished)");
+        Print2("[GAME: " + m_GameName + "] is over (gameover timer finished)");
         StopPlayers("was disconnected (gameover timer finished)");
         break;
       }
@@ -595,7 +595,7 @@ bool CGame::Update(void* fd, void* send_fd)
 
   if (!m_KickVotePlayer.empty() && Time - m_StartedKickVoteTime >= 60)
   {
-    Print("[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] expired");
+    Print2("[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] expired");
     SendAllChat("A votekick against player [" + m_KickVotePlayer + "] has expired");
     m_KickVotePlayer.clear();
     m_StartedKickVoteTime = 0;
@@ -727,7 +727,7 @@ bool CGame::Update(void* fd, void* send_fd)
 
     if (Time - m_LastReservedSeen > static_cast<int64_t>(m_Aura->m_LobbyTimeLimit * 60))
     {
-      Print("[GAME: " + m_GameName + "] is over (lobby time limit hit)");
+      Print2("[GAME: " + m_GameName + "] is over (lobby time limit hit)");
       return true;
     }
   }
@@ -853,7 +853,7 @@ void CGame::SendAllChat(uint8_t fromPID, const string& message)
 
   if (GetNumHumanPlayers() > 0)
   {
-    Print("[GAME: " + m_GameName + "] [Local] " + message);
+    Print2("[GAME: " + m_GameName + "] [Local] " + message);
 
     if (!m_GameLoading && !m_GameLoaded)
     {
@@ -1005,7 +1005,7 @@ void CGame::SendAllActions()
 
     // this program is SO FAST, I've yet to see this happen *coolface*
 
-    Print("[GAME: " + m_GameName + "] warning - the latency is " + to_string(m_Latency) + "ms but the last update was late by " + to_string(m_LastActionLateBy) + "ms");
+    Print2("[GAME: " + m_GameName + "] warning - the latency is " + to_string(m_Latency) + "ms but the last update was late by " + to_string(m_LastActionLateBy) + "ms");
     m_LastActionLateBy = m_Latency;
   }
 
@@ -1014,7 +1014,7 @@ void CGame::SendAllActions()
 
 void CGame::EventPlayerDeleted(CGamePlayer* player)
 {
-  Print("[GAME: " + m_GameName + "] deleting player [" + player->GetName() + "]: " + player->GetLeftReason());
+  Print2("[GAME: " + m_GameName + "] deleting player [" + player->GetName() + "]: " + player->GetLeftReason());
 
   m_LastPlayerLeaveTicks = GetTicks();
 
@@ -1080,17 +1080,23 @@ void CGame::EventPlayerDisconnectTimedOut(CGamePlayer* player)
     {
       SendAllChat(player->GetName() + " " + "has lost the connection (timed out) but is using GProxy++ and may reconnect");
       player->SetGProxyDisconnectNoticeSent(true);
+      if (m_StartedLaggingTime == 0)
+      {
+        m_StartedLaggingTime = GetTime();
+      }
     }
 
-    if (GetTime() - player->GetLastGProxyWaitNoticeSentTime() >= 20)
+    auto time_at_this_point = GetTime();
+
+    if (time_at_this_point - player->GetLastGProxyWaitNoticeSentTime() >= 20)
     {
-      int64_t TimeRemaining = (m_GProxyEmptyActions + 1) * 60 - (GetTime() - m_StartedLaggingTime);
+      int64_t TimeRemaining = (m_GProxyEmptyActions + 1) * 60 - (time_at_this_point - m_StartedLaggingTime);
 
       if (TimeRemaining > (static_cast<int64_t>(m_GProxyEmptyActions) + 1) * 60)
         TimeRemaining = (m_GProxyEmptyActions + 1) * 60;
 
       SendAllChat(player->GetPID(), "Please wait for me to reconnect (" + to_string(TimeRemaining) + " seconds remain)");
-      player->SetLastGProxyWaitNoticeSentTime(GetTime());
+      player->SetLastGProxyWaitNoticeSentTime(time_at_this_point);
     }
 
     return;
@@ -1119,6 +1125,10 @@ void CGame::EventPlayerDisconnectSocketError(CGamePlayer* player)
     {
       SendAllChat(player->GetName() + " " + "has lost the connection (connection error - " + player->GetSocket()->GetErrorString() + ") but is using GProxy++ and may reconnect");
       player->SetGProxyDisconnectNoticeSent(true);
+      if (m_StartedLaggingTime == 0)
+      {
+        m_StartedLaggingTime = GetTime();
+      }
     }
 
     if (GetTime() - player->GetLastGProxyWaitNoticeSentTime() >= 20)
@@ -1151,6 +1161,10 @@ void CGame::EventPlayerDisconnectConnectionClosed(CGamePlayer* player)
     {
       SendAllChat(player->GetName() + " " + "has lost the connection (connection closed by remote host) but is using GProxy++ and may reconnect");
       player->SetGProxyDisconnectNoticeSent(true);
+      if (m_StartedLaggingTime == 0)
+      {
+        m_StartedLaggingTime = GetTime();
+      }
     }
 
     if (GetTime() - player->GetLastGProxyWaitNoticeSentTime() >= 20)
@@ -1181,7 +1195,7 @@ void CGame::EventPlayerJoined(CPotentialPlayer* potential, CIncomingJoinPlayer* 
 
   if (joinPlayer->GetName().empty() || joinPlayer->GetName().size() > 15 || joinPlayer->GetName() == m_VirtualHostName || GetPlayerFromName(joinPlayer->GetName(), false) || joinPlayer->GetName().find(' ') != string::npos || joinPlayer->GetName().find('|') != string::npos)
   {
-    Print("[GAME: " + m_GameName + "] player [" + joinPlayer->GetName() + "|" + potential->GetExternalIPString() + "] invalid name (taken, invalid char, spoofer, too long)");
+    Print2("[GAME: " + m_GameName + "] player [" + joinPlayer->GetName() + "|" + potential->GetExternalIPString() + "] invalid name (taken, invalid char, spoofer, too long)");
     potential->Send(m_Protocol->SEND_W3GS_REJECTJOIN(REJECTJOIN_FULL));
     potential->SetDeleteMe(true);
     return;
@@ -1203,7 +1217,7 @@ void CGame::EventPlayerJoined(CPotentialPlayer* potential, CIncomingJoinPlayer* 
 
     if (joinPlayer->GetEntryKey() != m_EntryKey)
     {
-      Print("[GAME: " + m_GameName + "] player [" + joinPlayer->GetName() + "|" + potential->GetExternalIPString() + "] is trying to join the game over LAN but used an incorrect entry key");
+      Print2("[GAME: " + m_GameName + "] player [" + joinPlayer->GetName() + "|" + potential->GetExternalIPString() + "] is trying to join the game over LAN but used an incorrect entry key");
       potential->Send(m_Protocol->SEND_W3GS_REJECTJOIN(REJECTJOIN_WRONGPASSWORD));
       potential->SetDeleteMe(true);
       return;
@@ -1232,7 +1246,7 @@ void CGame::EventPlayerJoined(CPotentialPlayer* potential, CIncomingJoinPlayer* 
 
       if (Ban)
       {
-        Print("[GAME: " + m_GameName + "] player [" + joinPlayer->GetName() + "|" + potential->GetExternalIPString() + "] is banned");
+        Print2("[GAME: " + m_GameName + "] player [" + joinPlayer->GetName() + "|" + potential->GetExternalIPString() + "] is banned");
 
         if (m_IgnoredNames.find(joinPlayer->GetName()) == end(m_IgnoredNames))
         {
@@ -1338,7 +1352,7 @@ void CGame::EventPlayerJoined(CPotentialPlayer* potential, CIncomingJoinPlayer* 
   // this problem is solved by setting the socket to nullptr before deletion and handling the nullptr case in the destructor
   // we also have to be careful to not modify the m_Potentials vector since we're currently looping through it
 
-  Print("[GAME: " + m_GameName + "] player [" + joinPlayer->GetName() + "|" + potential->GetExternalIPString() + "] joined the game");
+  Print2("[GAME: " + m_GameName + "] player [" + joinPlayer->GetName() + "|" + potential->GetExternalIPString() + "] joined the game");
   CGamePlayer* Player = new CGamePlayer(potential, GetNewPID(), JoinedRealm, joinPlayer->GetName(), joinPlayer->GetInternalIP(), Reserved);
 
   // consider LAN players to have already spoof checked since they can't
@@ -1468,7 +1482,7 @@ void CGame::EventPlayerLeft(CGamePlayer* player, uint32_t reason)
 
 void CGame::EventPlayerLoaded(CGamePlayer* player)
 {
-  Print("[GAME: " + m_GameName + "] player [" + player->GetName() + "] finished loading in " + to_string(static_cast<double>(player->GetFinishedLoadingTicks() - m_StartedLoadingTicks) / 1000.f) + " seconds");
+  Print2("[GAME: " + m_GameName + "] player [" + player->GetName() + "] finished loading in " + to_string(static_cast<double>(player->GetFinishedLoadingTicks() - m_StartedLoadingTicks) / 1000.f) + " seconds");
 
   SendAll(m_Protocol->SEND_W3GS_GAMELOADED_OTHERS(player->GetPID()));
 }
@@ -1481,7 +1495,7 @@ void CGame::EventPlayerAction(CGamePlayer* player, CIncomingAction* action)
 
   if (!action->GetAction()->empty() && (*action->GetAction())[0] == 6)
   {
-    Print("[GAME: " + m_GameName + "] player [" + player->GetName() + "] is saving the game");
+    Print2("[GAME: " + m_GameName + "] player [" + player->GetName() + "] is saving the game");
     SendAllChat("Player [" + player->GetName() + "] is saving the game");
   }
 
@@ -1489,7 +1503,7 @@ void CGame::EventPlayerAction(CGamePlayer* player, CIncomingAction* action)
 
   if (m_Stats && action->GetAction()->size() >= 6 && m_Stats->ProcessAction(action) && m_GameOverTime == 0)
   {
-    Print("[GAME: " + m_GameName + "] gameover timer started (stats class reported game over)");
+    Print2("[GAME: " + m_GameName + "] gameover timer started (stats class reported game over)");
     m_GameOverTime = GetTime();
   }
 }
@@ -1508,7 +1522,7 @@ void CGame::EventPlayerKeepAlive(CGamePlayer* player)
     if (!m_Desynced && player->GetCheckSums()->front() != FirstCheckSum)
     {
       m_Desynced = true;
-      Print("[GAME: " + m_GameName + "] desync detected");
+      Print2("[GAME: " + m_GameName + "] desync detected");
       SendAllChat("Warning! Desync detected!");
       SendAllChat("Warning! Desync detected!");
       SendAllChat("Warning! Desync detected!");
@@ -1547,7 +1561,19 @@ void CGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* chat
         {
           // this is an ingame [All] message, print it to the console
 
-          Print("[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [All] [" + player->GetName() + "] " + chatPlayer->GetMessage());
+          Print2("[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [All] [" + player->GetName() + "] " + chatPlayer->GetMessage());
+
+          // don't relay ingame messages targeted for all players if we're currently muting all
+          // note that commands will still be processed even when muting all because we only stop relaying the messages, the rest of the function is unaffected
+
+          if (m_MuteAll)
+            Relay = false;
+        }
+        else
+        {
+          // this is an ingame [Allies] message, print it to the console
+
+          Print2("[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [Allies] [" + player->GetName() + "] " + chatPlayer->GetMessage());
 
           // don't relay ingame messages targeted for all players if we're currently muting all
           // note that commands will still be processed even when muting all because we only stop relaying the messages, the rest of the function is unaffected
@@ -1560,7 +1586,7 @@ void CGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* chat
       {
         // this is a lobby message, print it to the console
 
-        Print("[GAME: " + m_GameName + "] [Lobby] [" + player->GetName() + "] " + chatPlayer->GetMessage());
+        Print2("[GAME: " + m_GameName + "] [Lobby] [" + player->GetName() + "] " + chatPlayer->GetMessage());
 
         if (m_MuteLobby)
           Relay = false;
@@ -1592,7 +1618,7 @@ void CGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* chat
         // so if Relay is already false (e.g. because the player is muted) then it cannot be forced back to true here
 
         EventPlayerBotCommand(player, Command, Payload);
-        Relay = false;
+        Relay = true;
       }
 
       if (Relay)
@@ -1617,6 +1643,7 @@ void CGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* chat
 
 bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& payload)
 {
+
   const string User = player->GetName();
   const std::string& Command = command;
   const std::string& Payload = payload;
@@ -1649,7 +1676,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
 
   if (player->GetSpoofed() && (AdminCheck || RootAdminCheck || IsOwner(User)))
   {
-    Print("[GAME: " + m_GameName + "] admin [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]");
+    Print2("[GAME: " + m_GameName + "] admin [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]");
 
     if (!m_Locked || RootAdminCheck || IsOwner(User))
     {
@@ -1687,7 +1714,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
 
           vector<CGamePlayer*> SortedPlayers = m_Players;
           sort(begin(SortedPlayers), end(SortedPlayers), [](const CGamePlayer* a, const CGamePlayer* b) {
-            return a->GetPing(false) < b->GetPing(false);
+            return a->GetPing(false) > b->GetPing(false);
           });
           string Pings;
 
@@ -1781,6 +1808,12 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           if (!m_GameLoaded || m_Aura->m_BNETs.empty() || !m_DBBanLast)
             break;
 
+          if (!RootAdminCheck)
+          {
+            SendAllChat("Error: Only Root Admin can use this command! If you have a reason for banning, please contact the bot owner.");
+            break;
+          }
+
           m_Aura->m_DB->BanAdd(m_DBBanLast->GetServer(), m_DBBanLast->GetName(), User, Payload);
           SendAllChat("Player [" + m_DBBanLast->GetName() + "] was banned by player [" + User + "] on server [" + m_DBBanLast->GetServer() + "]");
           break;
@@ -1808,11 +1841,21 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
 
             if (SS.fail())
             {
-              Print("[GAME: " + m_GameName + "] bad input to close command");
+              Print2("[GAME: " + m_GameName + "] bad input to close command");
               break;
             }
             else
-              CloseSlot(static_cast<uint8_t>(SID - 1), true);
+            {
+              if (IsOwner(User) || RootAdminCheck || (AdminCheck && m_Slots[SID].GetSlotStatus() != SLOTSTATUS_OCCUPIED))
+              {
+                CloseSlot(static_cast<uint8_t>(SID - 1), true);
+              }
+              else if (!IsOwner(User) || !RootAdminCheck || (AdminCheck && m_Slots[SID].GetSlotStatus() == SLOTSTATUS_OCCUPIED))
+              {
+                SendAllChat("Player [" + User + "]: You cannot close slots that are currently occupied. Only game owner and Root Admin can.");
+                break;
+              }
+            }
           }
 
           break;
@@ -1828,7 +1871,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           if (m_GameLoaded)
             break;
 
-          Print("[GAME: " + m_GameName + "] is over (admin ended game)");
+          Print2("[GAME: " + m_GameName + "] is over (admin ended game)");
           StopPlayers("was disconnected (admin ended game)");
           break;
         }
@@ -1886,7 +1929,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
 
             if (SS.fail())
             {
-              Print("[GAME: " + m_GameName + "] bad input to hold command");
+              Print2("[GAME: " + m_GameName + "] bad input to hold command");
               break;
             }
             else
@@ -1918,7 +1961,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
 
             if (SS.fail())
             {
-              Print("[GAME: " + m_GameName + "] bad input to unhold command");
+              Print2("[GAME: " + m_GameName + "] bad input to unhold command");
               break;
             }
             else
@@ -1941,13 +1984,35 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           if (Payload.empty())
             break;
 
+          if (!(IsOwner(User) || RootAdminCheck)){
+            SendAllChat("Error: Only the game owner and Root Admin can kick other players!");
+            break;
+          }
+
           CGamePlayer* LastMatch = nullptr;
           uint32_t     Matches   = GetPlayerFromNamePartial(Payload, &LastMatch);
 
           if (Matches == 0)
-            SendChat(player, "Unable to kick player [" + Payload + "]. No matches found");
+            SendAllChat("Unable to kick player [" + Payload + "]. No matches found");
           else if (Matches == 1)
           {
+            bool LastMatchRootAdminCheck = false;
+
+            for (auto& bnet : m_Aura->m_BNETs)
+            {
+              if ((bnet->GetServer() == LastMatch->GetSpoofedRealm() || LastMatch->GetJoinedRealm().empty()) && bnet->IsRootAdmin(LastMatch->GetName()))
+              {
+                LastMatchRootAdminCheck = true;
+                break;
+              }
+            }
+
+            if (!RootAdminCheck && LastMatchRootAdminCheck)
+            {
+              SendAllChat("Error: You cannont kick a Root Admin!");
+              break;
+            }
+
             LastMatch->SetDeleteMe(true);
             LastMatch->SetLeftReason("was kicked by player [" + User + "]");
 
@@ -1960,7 +2025,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
               OpenSlot(GetSIDFromPID(LastMatch->GetPID()), false);
           }
           else
-            SendChat(player, "Unable to kick player [" + Payload + "]. Found more than one match");
+            SendAllChat("Unable to kick player [" + Payload + "]. Found more than one match");
 
           break;
         }
@@ -2028,7 +2093,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
 
             if (SS.fail())
             {
-              Print("[GAME: " + m_GameName + "] bad input to open command");
+              Print2("[GAME: " + m_GameName + "] bad input to open command");
               break;
             }
             else
@@ -2056,7 +2121,17 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
               // not a fake player
 
               if (!Fake)
-                OpenSlot(static_cast<uint8_t>(SID), true);
+              {
+                if (IsOwner(User) || RootAdminCheck || (AdminCheck && m_Slots[SID].GetSlotStatus() != SLOTSTATUS_OCCUPIED))
+                {
+                  OpenSlot(static_cast<uint8_t>(SID), true);
+                }
+                else if (!IsOwner(User) || !RootAdminCheck || (AdminCheck && m_Slots[SID].GetSlotStatus() == SLOTSTATUS_OCCUPIED))
+                {
+                  SendAllChat("Player [" + User + "]: You cannot open slots that are currently occupied. Only game owner and Root Admin can.");
+                  break;
+                }
+              }
             }
           }
 
@@ -2074,7 +2149,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
 
           if (Payload.length() < 31)
           {
-            Print("[GAME: " + m_GameName + "] trying to rehost as private game [" + Payload + "]");
+            Print2("[GAME: " + m_GameName + "] trying to rehost as private game [" + Payload + "]");
             SendAllChat("Trying to rehost as private game [" + Payload + "]. Please wait, this will take several seconds");
             m_GameState    = GAME_PRIVATE;
             m_LastGameName = m_GameName;
@@ -2120,7 +2195,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
 
           if (Payload.length() < 31)
           {
-            Print("[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]");
+            Print2("[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]");
             SendAllChat("Trying to rehost as public game [" + Payload + "]. Please wait, this will take several seconds");
             m_GameState    = GAME_PUBLIC;
             m_LastGameName = m_GameName;
@@ -2150,6 +2225,33 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
         }
 
         //
+        // !STARTN
+        //
+
+        case HashCode("startn"):
+        case HashCode("sn"):
+        {
+          if (m_CountDownStarted){
+            break;
+          }
+
+          if (Payload == "force" || Payload == "f")
+          {
+            StartCountDownNow(true);
+          }
+          else {
+            if (GetTicks() - m_LastPlayerLeaveTicks >= 1000){
+              StartCountDownNow(false);
+            }
+            else {
+              SendAllChat("Countdown aborted because someone left the game less than one second ago!");
+            }
+          }
+          
+          break;
+        }
+
+        //
         // !START
         //
 
@@ -2162,7 +2264,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           // if the player sent "!start force" skip the checks and start the countdown
           // otherwise check that the game is ready to start
 
-          if (Payload == "force")
+          if (Payload == "force" || Payload == "f")
             StartCountDown(true);
           else
           {
@@ -2191,17 +2293,17 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           SS >> SID1;
 
           if (SS.fail())
-            Print("[GAME: " + m_GameName + "] bad input #1 to swap command");
+            Print2("[GAME: " + m_GameName + "] bad input #1 to swap command");
           else
           {
             if (SS.eof())
-              Print("[GAME: " + m_GameName + "] missing input #2 to swap command");
+              Print2("[GAME: " + m_GameName + "] missing input #2 to swap command");
             else
             {
               SS >> SID2;
 
               if (SS.fail())
-                Print("[GAME: " + m_GameName + "] bad input #2 to swap command");
+                Print2("[GAME: " + m_GameName + "] bad input #2 to swap command");
               else
                 SwapSlots(static_cast<uint8_t>(SID1 - 1), static_cast<uint8_t>(SID2 - 1));
             }
@@ -2257,6 +2359,12 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           if (m_CountDownStarted)
             break;
 
+          if (!(IsOwner(User) || RootAdminCheck))
+          {
+            SendChat(player, "Error: Only the game owner and Root Admin can unhost this lobby!");
+            break;
+          }
+
           m_Exiting = true;
           break;
         }
@@ -2280,17 +2388,17 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           SS >> Slot;
 
           if (SS.fail())
-            Print("[GAME: " + m_GameName + "] bad input #1 to handicap command");
+            Print2("[GAME: " + m_GameName + "] bad input #1 to handicap command");
           else
           {
             if (SS.eof())
-              Print("[GAME: " + m_GameName + "] missing input #2 to handicap command");
+              Print2("[GAME: " + m_GameName + "] missing input #2 to handicap command");
             else
             {
               SS >> Handicap;
 
               if (SS.fail())
-                Print("[GAME: " + m_GameName + "] bad input #2 to handicap command");
+                Print2("[GAME: " + m_GameName + "] bad input #2 to handicap command");
               else
               {
                 uint8_t SID = static_cast<uint8_t>(Slot - 1);
@@ -2336,7 +2444,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
               {
                 // inform the client that we are willing to send the map
 
-                Print("[GAME: " + m_GameName + "] map download started for player [" + LastMatch->GetName() + "]");
+                Print2("[GAME: " + m_GameName + "] map download started for player [" + LastMatch->GetName() + "]");
                 Send(LastMatch, m_Protocol->SEND_W3GS_STARTDOWNLOAD(GetHostPID()));
                 LastMatch->SetDownloadAllowed(true);
                 LastMatch->SetDownloadStarted(true);
@@ -2411,15 +2519,38 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           CGamePlayer*   LastMatch = nullptr;
           const uint32_t Matches   = GetPlayerFromNamePartial(Payload, &LastMatch);
 
+          if (!(IsOwner(User) || RootAdminCheck))
+          {
+            SendAllChat("Error: Only the game owner and Root Admin can mute other players!");
+            break;
+          }
+
           if (Matches == 0)
-            SendChat(player, "Unable to mute/unmute player [" + Payload + "]. No matches found");
+            SendAllChat("Unable to mute/unmute player [" + Payload + "]. No matches found");
           else if (Matches == 1)
           {
+            bool LastMatchRootAdminCheck = false;
+
+            for (auto& bnet : m_Aura->m_BNETs)
+            {
+              if ((bnet->GetServer() == LastMatch->GetSpoofedRealm() || LastMatch->GetJoinedRealm().empty()) && bnet->IsRootAdmin(LastMatch->GetName()))
+              {
+                LastMatchRootAdminCheck = true;
+                break;
+              }
+            }
+
+            if (!RootAdminCheck && LastMatchRootAdminCheck)
+            {
+              SendAllChat("Error: You cannont mute a Root Admin!");
+              break;
+            }
+
             SendAllChat("Player [" + LastMatch->GetName() + "] was muted by player [" + User + "]");
             LastMatch->SetMuted(true);
           }
           else
-            SendChat(player, "Unable to mute/unmute player [" + Payload + "]. Found more than one match");
+            SendAllChat("Unable to mute/unmute player [" + Payload + "]. Found more than one match");
 
           break;
         }
@@ -2466,6 +2597,12 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
         {
           if (Payload.empty() || m_Aura->m_BNETs.empty())
             break;
+
+          if (!RootAdminCheck)
+          {
+            SendAllChat("Error: Only Root Admin can use this command! If you have a reason for banning, please contact the bot owner.");
+            break;
+          }
 
           // extract the victim and the reason
           // e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
@@ -2670,7 +2807,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
             SS >> Port;
 
           if (SS.fail())
-            Print("[GAME: " + m_GameName + "] bad inputs to sendlan command");
+            Print2("[GAME: " + m_GameName + "] bad inputs to sendlan command");
           else
           {
             // construct a fixed host counter which will be used to identify players from this "realm" (i.e. LAN)
@@ -2769,7 +2906,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           SS >> Slot;
 
           if (SS.fail())
-            Print("[GAME: " + m_GameName + "] bad input #1 to comp command");
+            Print2("[GAME: " + m_GameName + "] bad input #1 to comp command");
           else
           {
             uint32_t Skill;
@@ -2778,7 +2915,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
               SS >> Skill;
 
             if (SS.fail())
-              Print("[GAME: " + m_GameName + "] bad input #2 to comp command");
+              Print2("[GAME: " + m_GameName + "] bad input #2 to comp command");
             else
               ComputerSlot(static_cast<uint8_t>(Slot - 1), static_cast<uint8_t>(Skill), true);
           }
@@ -2804,17 +2941,17 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           SS >> Slot;
 
           if (SS.fail())
-            Print("[GAME: " + m_GameName + "] bad input #1 to compcolour command");
+            Print2("[GAME: " + m_GameName + "] bad input #1 to compcolour command");
           else
           {
             if (SS.eof())
-              Print("[GAME: " + m_GameName + "] missing input #2 to compcolour command");
+              Print2("[GAME: " + m_GameName + "] missing input #2 to compcolour command");
             else
             {
               SS >> Colour;
 
               if (SS.fail())
-                Print("[GAME: " + m_GameName + "] bad input #2 to compcolour command");
+                Print2("[GAME: " + m_GameName + "] bad input #2 to compcolour command");
               else
               {
                 uint8_t SID = static_cast<uint8_t>(Slot - 1);
@@ -2849,17 +2986,17 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           SS >> Slot;
 
           if (SS.fail())
-            Print("[GAME: " + m_GameName + "] bad input #1 to comphandicap command");
+            Print2("[GAME: " + m_GameName + "] bad input #1 to comphandicap command");
           else
           {
             if (SS.eof())
-              Print("[GAME: " + m_GameName + "] missing input #2 to comphandicap command");
+              Print2("[GAME: " + m_GameName + "] missing input #2 to comphandicap command");
             else
             {
               SS >> Handicap;
 
               if (SS.fail())
-                Print("[GAME: " + m_GameName + "] bad input #2 to comphandicap command");
+                Print2("[GAME: " + m_GameName + "] bad input #2 to comphandicap command");
               else
               {
                 uint8_t SID = static_cast<uint8_t>(Slot - 1);
@@ -3106,11 +3243,11 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           SS >> Slot;
 
           if (SS.fail())
-            Print("[GAME: " + m_GameName + "] bad input #1 to comprace command");
+            Print2("[GAME: " + m_GameName + "] bad input #1 to comprace command");
           else
           {
             if (SS.eof())
-              Print("[GAME: " + m_GameName + "] missing input #2 to comprace command");
+              Print2("[GAME: " + m_GameName + "] missing input #2 to comprace command");
             else
             {
               getline(SS, Race);
@@ -3152,7 +3289,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
                     SendAllSlotInfo();
                   }
                   else
-                    Print("[GAME: " + m_GameName + "] unknown race [" + Race + "] sent to comprace command");
+                    Print2("[GAME: " + m_GameName + "] unknown race [" + Race + "] sent to comprace command");
                 }
               }
             }
@@ -3179,17 +3316,17 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           SS >> Slot;
 
           if (SS.fail())
-            Print("[GAME: " + m_GameName + "] bad input #1 to compteam command");
+            Print2("[GAME: " + m_GameName + "] bad input #1 to compteam command");
           else
           {
             if (SS.eof())
-              Print("[GAME: " + m_GameName + "] missing input #2 to compteam command");
+              Print2("[GAME: " + m_GameName + "] missing input #2 to compteam command");
             else
             {
               SS >> Team;
 
               if (SS.fail())
-                Print("[GAME: " + m_GameName + "] bad input #2 to compteam command");
+                Print2("[GAME: " + m_GameName + "] bad input #2 to compteam command");
               else
               {
                 uint8_t SID = static_cast<uint8_t>(Slot - 1);
@@ -3226,16 +3363,16 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
     }
     else
     {
-      Print("[GAME: " + m_GameName + "] admin command ignored, the game is locked");
+      Print2("[GAME: " + m_GameName + "] admin command ignored, the game is locked");
       SendChat(player, "Only the game owner and root admins can run game commands when the game is locked");
     }
   }
   else
   {
     if (!player->GetSpoofed())
-      Print("[GAME: " + m_GameName + "] non-spoofchecked user [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]");
+      Print2("[GAME: " + m_GameName + "] non-spoofchecked user [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]");
     else
-      Print("[GAME: " + m_GameName + "] non-admin [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]");
+      Print2("[GAME: " + m_GameName + "] non-admin [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]");
   }
 
   /*********************
@@ -3272,19 +3409,17 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
 
         if (GamePlayerSummary)
         {
-          if (player->GetSpoofed() && (m_Aura->m_DB->AdminCheck(player->GetSpoofedRealm(), User) || RootAdminCheck || IsOwner(User)))
+          if (player->GetSpoofed()){
             SendAllChat("[" + StatsUser + "] has played " + to_string(GamePlayerSummary->GetTotalGames()) + " games with this bot. Average loading time: " + to_string(GamePlayerSummary->GetAvgLoadingTime()) + " seconds. Average stay: " + to_string(GamePlayerSummary->GetAvgLeftPercent()) + " percent");
-          else
-            SendChat(player, "[" + StatsUser + "] has played " + to_string(GamePlayerSummary->GetTotalGames()) + " games with this bot. Average loading time: " + to_string(GamePlayerSummary->GetAvgLoadingTime()) + " seconds. Average stay: " + to_string(GamePlayerSummary->GetAvgLeftPercent()) + " percent");
+          }
 
           delete GamePlayerSummary;
         }
         else
         {
-          if (player->GetSpoofed() && (m_Aura->m_DB->AdminCheck(player->GetSpoofedRealm(), User) || RootAdminCheck || IsOwner(User)))
+          if (player->GetSpoofed()){
             SendAllChat("[" + StatsUser + "] hasn't played any games here");
-          else
-            SendChat(player, "[" + StatsUser + "] hasn't played any games here");
+          }
         }
       }
 
@@ -3374,7 +3509,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
               player->SetKickVote(false);
 
             player->SetKickVote(true);
-            Print("[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] started by player [" + User + "]");
+            Print2("[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] started by player [" + User + "]");
             SendAllChat("Player [" + User + "] voted to kick player [" + LastMatch->GetName() + "]. " + to_string(static_cast<uint32_t>(ceil((GetNumHumanPlayers() - 1) * static_cast<float>(m_Aura->m_VoteKickPercentage) / 100)) - 1) + " more votes are needed to pass");
             SendAllChat("Type " + string(1, m_Aura->m_CommandTrigger) + "yes to vote");
           }
@@ -3421,7 +3556,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
           if (!m_GameLoading && !m_GameLoaded)
             OpenSlot(GetSIDFromPID(Victim->GetPID()), false);
 
-          Print("[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] passed with " + to_string(Votes) + "/" + to_string(GetNumHumanPlayers()) + " votes");
+          Print2("[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] passed with " + to_string(Votes) + "/" + to_string(GetNumHumanPlayers()) + " votes");
           SendAllChat("A votekick against player [" + m_KickVotePlayer + "] has passed");
         }
         else
@@ -3573,7 +3708,7 @@ void CGame::EventPlayerDropRequest(CGamePlayer* player)
 
   if (m_Lagging)
   {
-    Print("[GAME: " + m_GameName + "] player [" + player->GetName() + "] voted to drop laggers");
+    Print2("[GAME: " + m_GameName + "] player [" + player->GetName() + "] voted to drop laggers");
     SendAllChat("Player [" + player->GetName() + "] voted to drop laggers");
 
     // check if at least half the players voted to drop
@@ -3616,7 +3751,7 @@ void CGame::EventPlayerMapSize(CGamePlayer* player, CIncomingMapSize* mapSize)
           {
             // inform the client that we are willing to send the map
 
-            Print("[GAME: " + m_GameName + "] map download started for player [" + player->GetName() + "]");
+            Print2("[GAME: " + m_GameName + "] map download started for player [" + player->GetName() + "]");
             Send(player, m_Protocol->SEND_W3GS_STARTDOWNLOAD(GetHostPID()));
             player->SetDownloadStarted(true);
             player->SetStartedDownloadingTicks(GetTicks());
@@ -3646,7 +3781,7 @@ void CGame::EventPlayerMapSize(CGamePlayer* player, CIncomingMapSize* mapSize)
     // calculate download rate
     const double Seconds = static_cast<double>(GetTicks() - player->GetStartedDownloadingTicks()) / 1000.f;
     const double Rate    = static_cast<double>(MapSize) / 1024.f / Seconds;
-    Print("[GAME: " + m_GameName + "] map download finished for player [" + player->GetName() + "] in " + ToFormattedString(Seconds) + " seconds");
+    Print2("[GAME: " + m_GameName + "] map download finished for player [" + player->GetName() + "] in " + ToFormattedString(Seconds) + " seconds");
     SendAllChat("Player [" + player->GetName() + "] downloaded the map in " + ToFormattedString(Seconds) + " seconds (" + ToFormattedString(Rate) + " KB/sec)");
     player->SetDownloadFinished(true);
     player->SetFinishedDownloadingTime(GetTime());
@@ -3746,13 +3881,13 @@ void CGame::EventGameStarted()
         }
 
         SendAllSlotInfo();
-        Print("[GAME: " + m_GameName + "] successfully encoded HCL command string [" + m_HCLCommandString + "]");
+        Print2("[GAME: " + m_GameName + "] successfully encoded HCL command string [" + m_HCLCommandString + "]");
       }
       else
-        Print("[GAME: " + m_GameName + "] encoding HCL command string [" + m_HCLCommandString + "] failed because it contains invalid characters");
+        Print2("[GAME: " + m_GameName + "] encoding HCL command string [" + m_HCLCommandString + "] failed because it contains invalid characters");
     }
     else
-      Print("[GAME: " + m_GameName + "] encoding HCL command string [" + m_HCLCommandString + "] failed because there aren't enough occupied slots");
+      Print2("[GAME: " + m_GameName + "] encoding HCL command string [" + m_HCLCommandString + "] failed because there aren't enough occupied slots");
   }
 
   // send a final slot info update if necessary
@@ -3795,7 +3930,7 @@ void CGame::EventGameStarted()
   if (m_Map->GetMapType() == "dota")
   {
     if (m_StartPlayers < 6)
-      Print("[STATS] not using dotastats due to too few players");
+      Print2("[STATS] not using dotastats due to too few players");
     else
       m_Stats = new CStats(this);
   }
@@ -3841,7 +3976,7 @@ void CGame::EventGameStarted()
 
 void CGame::EventGameLoaded()
 {
-  Print("[GAME: " + m_GameName + "] finished loading with " + to_string(GetNumHumanPlayers()) + " players");
+  Print2("[GAME: " + m_GameName + "] finished loading with " + to_string(GetNumHumanPlayers()) + " players");
 
   // send shortest, longest, and personal load times to each player
 
@@ -4548,6 +4683,78 @@ bool CGame::IsDownloading() const
   }
 
   return false;
+}
+
+void CGame::StartCountDownNow(bool force)
+{
+  if (!m_CountDownStarted)
+  {
+    if (force)
+    {
+      m_CountDownStarted = true;
+      m_CountDownCounter = 0;
+    }
+    else
+    {
+      // check if the HCL command string is short enough
+
+      if (m_HCLCommandString.size() > GetSlotsOccupied())
+      {
+        SendAllChat("The HCL command string is too long. Use 'force' to start anyway");
+        return;
+      }
+
+      // check if everyone has the map
+
+      string StillDownloading;
+
+      for (auto& slot : m_Slots)
+      {
+        if (slot.GetSlotStatus() == SLOTSTATUS_OCCUPIED && slot.GetComputer() == 0 && slot.GetDownloadStatus() != 100)
+        {
+          CGamePlayer* Player = GetPlayerFromPID(slot.GetPID());
+
+          if (Player)
+          {
+            if (StillDownloading.empty())
+              StillDownloading = Player->GetName();
+            else
+              StillDownloading += ", " + Player->GetName();
+          }
+        }
+      }
+
+      if (!StillDownloading.empty())
+        SendAllChat("Players still downloading the map: " + StillDownloading);
+
+      // check if everyone has been pinged enough (3 times) that the autokicker would have kicked them by now
+      // see function EventPlayerPongToHost for the autokicker code
+
+      string NotPinged;
+
+      for (auto& player : m_Players)
+      {
+        if (!player->GetReserved() && player->GetNumPings() < 3)
+        {
+          if (NotPinged.empty())
+            NotPinged = player->GetName();
+          else
+            NotPinged += ", " + player->GetName();
+        }
+      }
+
+      if (!NotPinged.empty())
+        SendAllChat("Players not yet pinged 3 times: " + NotPinged);
+
+      // if no problems found start the game
+
+      if (StillDownloading.empty() && NotPinged.empty())
+      {
+        m_CountDownStarted = true;
+        m_CountDownCounter = 0;
+      }
+    }
+  }
 }
 
 void CGame::StartCountDown(bool force)

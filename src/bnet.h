@@ -43,7 +43,7 @@ class CMap;
 class CBNET
 {
 public:
-  CAura* m_Aura;
+CAura* m_Aura;
 
 private:
   CTCPClient*                      m_Socket;                    // the connection to battle.net

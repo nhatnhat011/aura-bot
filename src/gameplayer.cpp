@@ -474,5 +474,6 @@ void CGamePlayer::EventGProxyReconnect(CTCPSocket* NewSocket, uint32_t LastPacke
 
   m_GProxyBuffer               = TempBuffer;
   m_GProxyDisconnectNoticeSent = false;
+  m_Game->SetStartedLaggingTime(0);
   m_Game->SendAllChat("Player [" + m_Name + "] reconnected with GProxy++!");
 }

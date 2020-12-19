@@ -104,10 +104,10 @@ CBNET::CBNET(CAura* nAura, string nServer, const string& nServerAlias, const str
   transform(begin(m_CDKeyTFT), end(m_CDKeyTFT), begin(m_CDKeyTFT), ::toupper);
 
   if (m_CDKeyROC.size() != 26)
-    Print("[BNET: " + m_ServerAlias + "] warning - your ROC CD key is not 26 characters long and is probably invalid");
+    Print2("[BNET: " + m_ServerAlias + "] warning - your ROC CD key is not 26 characters long and is probably invalid");
 
   if (m_CDKeyTFT.size() != 26)
-    Print("[BNET: " + m_ServerAlias + "] warning - your TFT CD key is not 26 characters long and is probably invalid");
+    Print2("[BNET: " + m_ServerAlias + "] warning - your TFT CD key is not 26 characters long and is probably invalid");
 }
 
 CBNET::~CBNET()
@@ -141,7 +141,7 @@ bool CBNET::Update(void* fd, void* send_fd)
     // the socket has an error
 
     Print2("[BNET: " + m_ServerAlias + "] disconnected from battle.net due to socket error");
-    Print("[BNET: " + m_ServerAlias + "] waiting " + to_string(m_ReconnectDelay) + " seconds to reconnect");
+    Print2("[BNET: " + m_ServerAlias + "] waiting " + to_string(m_ReconnectDelay) + " seconds to reconnect");
     m_BNCSUtil->Reset(m_UserName, m_UserPassword);
     m_Socket->Reset();
     m_LastDisconnectedTime = Time;
@@ -195,7 +195,7 @@ bool CBNET::Update(void* fd, void* send_fd)
               GameHost = m_Protocol->RECEIVE_SID_GETADVLISTEX(Data);
 
               if (GameHost)
-                Print("[BNET: " + m_ServerAlias + "] joining game [" + GameHost->GetGameName() + "]");
+                Print2("[BNET: " + m_ServerAlias + "] joining game [" + GameHost->GetGameName() + "]");
 
               delete GameHost;
               break;
@@ -203,7 +203,7 @@ bool CBNET::Update(void* fd, void* send_fd)
             case CBNETProtocol::SID_ENTERCHAT:
               if (m_Protocol->RECEIVE_SID_ENTERCHAT(Data))
               {
-                Print("[BNET: " + m_ServerAlias + "] joining channel [" + m_FirstChannel + "]");
+                Print2("[BNET: " + m_ServerAlias + "] joining channel [" + m_FirstChannel + "]");
                 m_InChat = true;
                 m_Socket->PutBytes(m_Protocol->SEND_SID_JOINCHANNEL(m_FirstChannel));
               }
@@ -230,7 +230,7 @@ bool CBNET::Update(void* fd, void* send_fd)
               }
               else
               {
-                Print("[BNET: " + m_ServerAlias + "] startadvex3 failed");
+                Print2("[BNET: " + m_ServerAlias + "] startadvex3 failed");
                 m_Aura->EventBNETGameRefreshFailed(this);
               }
 
@@ -251,23 +251,23 @@ bool CBNET::Update(void* fd, void* send_fd)
 
                   if (m_EXEVersion.size() == 4)
                   {
-                    Print("[BNET: " + m_ServerAlias + "] using custom exe version bnet_custom_exeversion = " + to_string(m_EXEVersion[0]) + " " + to_string(m_EXEVersion[1]) + " " + to_string(m_EXEVersion[2]) + " " + to_string(m_EXEVersion[3]));
+                    Print2("[BNET: " + m_ServerAlias + "] using custom exe version bnet_custom_exeversion = " + to_string(m_EXEVersion[0]) + " " + to_string(m_EXEVersion[1]) + " " + to_string(m_EXEVersion[2]) + " " + to_string(m_EXEVersion[3]));
                     m_BNCSUtil->SetEXEVersion(m_EXEVersion);
                   }
 
                   if (m_EXEVersionHash.size() == 4)
                   {
-                    Print("[BNET: " + m_ServerAlias + "] using custom exe version hash bnet_custom_exeversionhash = " + to_string(m_EXEVersionHash[0]) + " " + to_string(m_EXEVersionHash[1]) + " " + to_string(m_EXEVersionHash[2]) + " " + to_string(m_EXEVersionHash[3]));
+                    Print2("[BNET: " + m_ServerAlias + "] using custom exe version hash bnet_custom_exeversionhash = " + to_string(m_EXEVersionHash[0]) + " " + to_string(m_EXEVersionHash[1]) + " " + to_string(m_EXEVersionHash[2]) + " " + to_string(m_EXEVersionHash[3]));
                     m_BNCSUtil->SetEXEVersionHash(m_EXEVersionHash);
                   }
 
-                  Print("[BNET: " + m_ServerAlias + "] attempting to auth as Warcraft III: The Frozen Throne");
+                  Print2("[BNET: " + m_ServerAlias + "] attempting to auth as Warcraft III: The Frozen Throne");
 
                   m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_CHECK(m_Protocol->GetClientToken(), m_BNCSUtil->GetEXEVersion(), m_BNCSUtil->GetEXEVersionHash(), m_BNCSUtil->GetKeyInfoROC(), m_BNCSUtil->GetKeyInfoTFT(), m_BNCSUtil->GetEXEInfo(), "Aura"));
                 }
                 else
                 {
-                  Print("[BNET: " + m_ServerAlias + "] logon failed - bncsutil key hash failed (check your Warcraft 3 path and cd keys), disconnecting");
+                  Print2("[BNET: " + m_ServerAlias + "] logon failed - bncsutil key hash failed (check your Warcraft 3 path and cd keys), disconnecting");
                   m_Socket->Disconnect();
                 }
               }
@@ -279,7 +279,7 @@ bool CBNET::Update(void* fd, void* send_fd)
               {
                 // cd keys accepted
 
-                Print("[BNET: " + m_ServerAlias + "] cd keys accepted");
+                Print2("[BNET: " + m_ServerAlias + "] cd keys accepted");
                 m_BNCSUtil->HELP_SID_AUTH_ACCOUNTLOGON();
                 m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_ACCOUNTLOGON(m_BNCSUtil->GetClientKey(), m_UserName));
               }
@@ -290,23 +290,23 @@ bool CBNET::Update(void* fd, void* send_fd)
                 switch (ByteArrayToUInt32(m_Protocol->GetKeyState(), false))
                 {
                   case CBNETProtocol::KR_ROC_KEY_IN_USE:
-                    Print("[BNET: " + m_ServerAlias + "] logon failed - ROC CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
+                    Print2("[BNET: " + m_ServerAlias + "] logon failed - ROC CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
                     break;
 
                   case CBNETProtocol::KR_TFT_KEY_IN_USE:
-                    Print("[BNET: " + m_ServerAlias + "] logon failed - TFT CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
+                    Print2("[BNET: " + m_ServerAlias + "] logon failed - TFT CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
                     break;
 
                   case CBNETProtocol::KR_OLD_GAME_VERSION:
-                    Print("[BNET: " + m_ServerAlias + "] logon failed - game version is too old, disconnecting");
+                    Print2("[BNET: " + m_ServerAlias + "] logon failed - game version is too old, disconnecting");
                     break;
 
                   case CBNETProtocol::KR_INVALID_VERSION:
-                    Print("[BNET: " + m_ServerAlias + "] logon failed - game version is invalid, disconnecting");
+                    Print2("[BNET: " + m_ServerAlias + "] logon failed - game version is invalid, disconnecting");
                     break;
 
                   default:
-                    Print("[BNET: " + m_ServerAlias + "] logon failed - cd keys not accepted, disconnecting");
+                    Print2("[BNET: " + m_ServerAlias + "] logon failed - cd keys not accepted, disconnecting");
                     break;
                 }
 
@@ -318,13 +318,13 @@ bool CBNET::Update(void* fd, void* send_fd)
             case CBNETProtocol::SID_AUTH_ACCOUNTLOGON:
               if (m_Protocol->RECEIVE_SID_AUTH_ACCOUNTLOGON(Data))
               {
-                Print("[BNET: " + m_ServerAlias + "] username [" + m_UserName + "] accepted");
+                Print2("[BNET: " + m_ServerAlias + "] username [" + m_UserName + "] accepted");
 
                 if (m_PasswordHashType == "pvpgn")
                 {
                   // pvpgn logon
 
-                  Print("[BNET: " + m_ServerAlias + "] using pvpgn logon type (for pvpgn servers only)");
+                  Print2("[BNET: " + m_ServerAlias + "] using pvpgn logon type (for pvpgn servers only)");
                   m_BNCSUtil->HELP_PvPGNPasswordHash(m_UserPassword);
                   m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_ACCOUNTLOGONPROOF(m_BNCSUtil->GetPvPGNPasswordHash()));
                 }
@@ -332,14 +332,14 @@ bool CBNET::Update(void* fd, void* send_fd)
                 {
                   // battle.net logon
 
-                  Print("[BNET: " + m_ServerAlias + "] using battle.net logon type (for official battle.net servers only)");
+                  Print2("[BNET: " + m_ServerAlias + "] using battle.net logon type (for official battle.net servers only)");
                   m_BNCSUtil->HELP_SID_AUTH_ACCOUNTLOGONPROOF(m_Protocol->GetSalt(), m_Protocol->GetServerPublicKey());
                   m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_ACCOUNTLOGONPROOF(m_BNCSUtil->GetM1()));
                 }
               }
               else
               {
-                Print("[BNET: " + m_ServerAlias + "] logon failed - invalid username, disconnecting");
+                Print2("[BNET: " + m_ServerAlias + "] logon failed - invalid username, disconnecting");
                 m_Socket->Disconnect();
               }
 
@@ -350,7 +350,7 @@ bool CBNET::Update(void* fd, void* send_fd)
               {
                 // logon successful
 
-                Print("[BNET: " + m_ServerAlias + "] logon successful");
+                Print2("[BNET: " + m_ServerAlias + "] logon successful");
                 m_LoggedIn = true;
                 m_Socket->PutBytes(m_Protocol->SEND_SID_NETGAMEPORT(m_Aura->m_HostPort));
                 m_Socket->PutBytes(m_Protocol->SEND_SID_ENTERCHAT());
@@ -359,7 +359,7 @@ bool CBNET::Update(void* fd, void* send_fd)
               }
               else
               {
-                Print("[BNET: " + m_ServerAlias + "] logon failed - invalid password, disconnecting");
+                Print2("[BNET: " + m_ServerAlias + "] logon failed - invalid password, disconnecting");
 
                 // try to figure out if the user might be using the wrong logon type since too many people are confused by this
 
@@ -367,9 +367,9 @@ bool CBNET::Update(void* fd, void* send_fd)
                 transform(begin(Server), end(Server), begin(Server), ::tolower);
 
                 if (m_PvPGN && (Server == "useast.battle.net" || Server == "uswest.battle.net" || Server == "asia.battle.net" || Server == "europe.battle.net"))
-                  Print("[BNET: " + m_ServerAlias + R"(] it looks like you're trying to connect to a battle.net server using a pvpgn logon type, check your config file's "battle.net custom data" section)");
+                  Print2("[BNET: " + m_ServerAlias + R"(] it looks like you're trying to connect to a battle.net server using a pvpgn logon type, check your config file's "battle.net custom data" section)");
                 else if (!m_PvPGN && (Server != "useast.battle.net" && Server != "uswest.battle.net" && Server != "asia.battle.net" && Server != "europe.battle.net"))
-                  Print("[BNET: " + m_ServerAlias + R"(] it looks like you're trying to connect to a pvpgn server using a battle.net logon type, check your config file's "battle.net custom data" section)");
+                  Print2("[BNET: " + m_ServerAlias + R"(] it looks like you're trying to connect to a pvpgn server using a battle.net logon type, check your config file's "battle.net custom data" section)");
 
                 m_Socket->Disconnect();
               }
@@ -410,7 +410,7 @@ bool CBNET::Update(void* fd, void* send_fd)
     if (!m_OutPackets.empty() && Ticks - m_LastOutPacketTicks >= WaitTicks)
     {
       if (m_OutPackets.size() > 7)
-        Print("[BNET: " + m_ServerAlias + "] packet queue warning - there are " + to_string(m_OutPackets.size()) + " packets waiting to be sent");
+        Print2("[BNET: " + m_ServerAlias + "] packet queue warning - there are " + to_string(m_OutPackets.size()) + " packets waiting to be sent");
 
       m_Socket->PutBytes(m_OutPackets.front());
       m_LastOutPacketSize = m_OutPackets.front().size();
@@ -449,10 +449,10 @@ bool CBNET::Update(void* fd, void* send_fd)
     // attempt to connect to battle.net
 
     m_FirstConnect = false;
-    Print("[BNET: " + m_ServerAlias + "] connecting to server [" + m_Server + "] on port 6112");
+    Print2("[BNET: " + m_ServerAlias + "] connecting to server [" + m_Server + "] on port 6112");
 
     if (!m_Aura->m_BindAddress.empty())
-      Print("[BNET: " + m_ServerAlias + "] attempting to bind to address [" + m_Aura->m_BindAddress + "]");
+      Print2("[BNET: " + m_ServerAlias + "] attempting to bind to address [" + m_Aura->m_BindAddress + "]");
 
     if (m_ServerIP.empty())
     {
@@ -461,14 +461,14 @@ bool CBNET::Update(void* fd, void* send_fd)
       if (!m_Socket->HasError())
       {
         m_ServerIP = m_Socket->GetIPString();
-        Print("[BNET: " + m_ServerAlias + "] resolved and cached server IP address " + m_ServerIP);
+        Print2("[BNET: " + m_ServerAlias + "] resolved and cached server IP address " + m_ServerIP);
       }
     }
     else
     {
       // use cached server IP address since resolving takes time and is blocking
 
-      Print("[BNET: " + m_ServerAlias + "] using cached server IP address " + m_ServerIP);
+      Print2("[BNET: " + m_ServerAlias + "] using cached server IP address " + m_ServerIP);
       m_Socket->Connect(m_Aura->m_BindAddress, m_ServerIP, 6112);
     }
 
@@ -500,8 +500,8 @@ bool CBNET::Update(void* fd, void* send_fd)
     {
       // the connection attempt timed out (15 seconds)
 
-      Print("[BNET: " + m_ServerAlias + "] connect timed out");
-      Print("[BNET: " + m_ServerAlias + "] waiting 90 seconds to reconnect");
+      Print2("[BNET: " + m_ServerAlias + "] connect timed out");
+      Print2("[BNET: " + m_ServerAlias + "] waiting 90 seconds to reconnect");
       m_Socket->Reset();
       m_LastDisconnectedTime = Time;
       m_WaitingToConnect     = true;
@@ -549,7 +549,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
     if (Event == CBNETProtocol::EID_WHISPER)
       Print2("[WHISPER: " + m_ServerAlias + "] [" + User + "] " + Message);
     else
-      Print("[LOCAL: " + m_ServerAlias + "] [" + User + "] " + Message);
+      Print2("[LOCAL: " + m_ServerAlias + "] [" + User + "] " + Message);
 
     // handle bot commands
 
@@ -575,7 +575,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
 
       if (IsAdmin(User) || IsRootAdmin(User))
       {
-        Print("[BNET: " + m_ServerAlias + "] admin [" + User + "] sent command [" + Message + "]");
+        Print2("[BNET: " + m_ServerAlias + "] admin [" + User + "] sent command [" + Message + "]");
 
         /*****************
          * ADMIN COMMANDS *
@@ -595,7 +595,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
             {
               if (!FileExists(m_Aura->m_MapPath))
               {
-                Print("[BNET: " + m_ServerAlias + "] error listing maps - map path doesn't exist");
+                Print2("[BNET: " + m_ServerAlias + "] error listing maps - map path doesn't exist");
                 QueueChatCommand("Error listing maps - map path doesn't exist", User, Whisper, m_IRC);
               }
               else
@@ -707,7 +707,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
             {
               if (!FileExists(m_Aura->m_MapCFGPath))
               {
-                Print("[BNET: " + m_ServerAlias + "] error listing map configs - map config path doesn't exist");
+                Print2("[BNET: " + m_ServerAlias + "] error listing map configs - map config path doesn't exist");
                 QueueChatCommand("Error listing map configs - map config path doesn't exist", User, Whisper, m_IRC);
               }
               else
@@ -773,6 +773,11 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
           {
             if (Payload.empty())
               break;
+
+            if (!IsRootAdmin(User)){
+              QueueChatCommand("Error: Only Root Admin can use this command! If you have a reason for banning, please contact the bot owner.", User, Whisper, m_IRC);
+              break;
+            }
 
             // extract the victim and the reason
             // e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
@@ -885,7 +890,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
 
                 if (SS.fail())
                 {
-                  Print("[BNET: " + m_ServerAlias + "] bad input to close command");
+                  Print2("[BNET: " + m_ServerAlias + "] bad input to close command");
                   break;
                 }
                 else
@@ -1071,7 +1076,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
                 else
                 {
                   QueueChatCommand("Ending game [" + m_Aura->m_Games[GameNumber]->GetDescription() + "]", User, Whisper, m_IRC);
-                  Print("[GAME: " + m_Aura->m_Games[GameNumber]->GetGameName() + "] is over (admin ended game)");
+                  Print2("[GAME: " + m_Aura->m_Games[GameNumber]->GetGameName() + "] is over (admin ended game)");
                   m_Aura->m_Games[GameNumber]->StopPlayers("was disconnected (admin ended game)");
                 }
               }
@@ -1107,7 +1112,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
 
               if (SS.fail())
               {
-                Print("[BNET: " + m_ServerAlias + "] bad input to hold command");
+                Print2("[BNET: " + m_ServerAlias + "] bad input to hold command");
                 break;
               }
               else
@@ -1268,7 +1273,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
 
                 if (SS.fail())
                 {
-                  Print("[BNET: " + m_ServerAlias + "] bad input to open command");
+                  Print2("[BNET: " + m_ServerAlias + "] bad input to open command");
                   break;
                 }
                 else
@@ -1401,11 +1406,11 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
               SS >> GameNumber;
 
               if (SS.fail())
-                Print("[BNET: " + m_ServerAlias + "] bad input #1 to saygame command");
+                Print2("[BNET: " + m_ServerAlias + "] bad input #1 to saygame command");
               else
               {
                 if (SS.eof())
-                  Print("[BNET: " + m_ServerAlias + "] missing input #2 to saygame command");
+                  Print2("[BNET: " + m_ServerAlias + "] missing input #2 to saygame command");
                 else
                 {
                   getline(SS, Message);
@@ -1487,12 +1492,17 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
             if (!m_Aura->m_CurrentGame || m_Aura->m_CurrentGame->GetCountDownStarted() || m_Aura->m_CurrentGame->GetNumHumanPlayers() == 0)
               break;
 
+            if (!IsRootAdmin(User)){
+              QueueChatCommand("You cannot start someone else's lobby if you are not root admin", User, Whisper, m_IRC);
+              break;
+            }
+
             if (!m_Aura->m_CurrentGame->GetLocked())
             {
               // if the player sent "!start force" skip the checks and start the countdown
               // otherwise check that the game is ready to start
 
-              if (Payload == "force")
+              if (Payload == "force" || Payload == "f")
                 m_Aura->m_CurrentGame->StartCountDown(true);
               else
                 m_Aura->m_CurrentGame->StartCountDown(false);
@@ -1520,17 +1530,17 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
               SS >> SID1;
 
               if (SS.fail())
-                Print("[BNET: " + m_ServerAlias + "] bad input #1 to swap command");
+                Print2("[BNET: " + m_ServerAlias + "] bad input #1 to swap command");
               else
               {
                 if (SS.eof())
-                  Print("[BNET: " + m_ServerAlias + "] missing input #2 to swap command");
+                  Print2("[BNET: " + m_ServerAlias + "] missing input #2 to swap command");
                 else
                 {
                   SS >> SID2;
 
                   if (SS.fail())
-                    Print("[BNET: " + m_ServerAlias + "] bad input #2 to swap command");
+                    Print2("[BNET: " + m_ServerAlias + "] bad input #2 to swap command");
                   else
                     m_Aura->m_CurrentGame->SwapSlots(static_cast<uint8_t>(SID1 - 1), static_cast<uint8_t>(SID2 - 1));
                 }
@@ -1548,7 +1558,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
 
           case HashCode("restart"):
           {
-            if ((!m_Aura->m_Games.size() && !m_Aura->m_CurrentGame) || Payload == "force")
+            if ((!m_Aura->m_Games.size() && !m_Aura->m_CurrentGame) || Payload == "force" || Payload == "f")
             {
               m_Exiting = true;
 
@@ -1657,7 +1667,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
           {
             if (IsRootAdmin(User))
             {
-              if (Payload == "force")
+              if (Payload == "force" || Payload == "f")
                 m_Exiting = true;
               else
               {
@@ -1675,7 +1685,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
         }
       }
       else
-        Print("[BNET: " + m_ServerAlias + "] non-admin [" + User + "] sent command [" + Message + "]");
+        Print2("[BNET: " + m_ServerAlias + "] non-admin [" + User + "] sent command [" + Message + "]");
 
       /*********************
        * NON ADMIN COMMANDS *
@@ -1882,13 +1892,13 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
   {
     // keep track of current channel so we can rejoin it after hosting a game
 
-    Print("[BNET: " + m_ServerAlias + "] joined channel [" + Message + "]");
+    Print2("[BNET: " + m_ServerAlias + "] joined channel [" + Message + "]");
 
     m_CurrentChannel = Message;
   }
   else if (Event == CBNETProtocol::EID_INFO)
   {
-    Print("[INFO: " + m_ServerAlias + "] " + Message);
+    Print2("[INFO: " + m_ServerAlias + "] " + Message);
 
     // extract the first word which we hope is the username
     // this is not necessarily true though since info messages also include channel MOTD's and such
@@ -1927,7 +1937,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
   }
   else if (Event == CBNETProtocol::EID_ERROR)
   {
-    Print("[ERROR: " + m_ServerAlias + "] " + Message);
+    Print2("[ERROR: " + m_ServerAlias + "] " + Message);
   }
 }
 
@@ -1958,7 +1968,7 @@ void CBNET::QueueChatCommand(const string& chatCommand)
   {
     if (m_OutPackets.size() <= 10)
     {
-      Print("[QUEUED: " + m_ServerAlias + "] " + chatCommand);
+      Print2("[QUEUED: " + m_ServerAlias + "] " + chatCommand);
 
       if (m_PvPGN)
         m_OutPackets.push(m_Protocol->SEND_SID_CHATCOMMAND(chatCommand.substr(0, 200)));
@@ -1968,7 +1978,7 @@ void CBNET::QueueChatCommand(const string& chatCommand)
         m_OutPackets.push(m_Protocol->SEND_SID_CHATCOMMAND(chatCommand));
     }
     else
-      Print("[BNET: " + m_ServerAlias + "] too many (" + to_string(m_OutPackets.size()) + ") packets queued, discarding");
+      Print2("[BNET: " + m_ServerAlias + "] too many (" + to_string(m_OutPackets.size()) + ") packets queued, discarding");
   }
 }
 
@@ -2060,7 +2070,7 @@ void CBNET::UnqueueGameRefreshes()
   }
 
   m_OutPackets = Packets;
-  Print("[BNET: " + m_ServerAlias + "] unqueued game refresh packets");
+  Print2("[BNET: " + m_ServerAlias + "] unqueued game refresh packets");
 }
 
 bool CBNET::IsAdmin(string name)

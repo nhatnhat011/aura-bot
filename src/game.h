@@ -154,6 +154,7 @@ public:
 
   inline void SetExiting(bool nExiting) { m_Exiting = nExiting; }
   inline void SetRefreshError(bool nRefreshError) { m_RefreshError = nRefreshError; }
+  inline void SetStartedLaggingTime(int64_t nStartedLaggingTime) { m_StartedLaggingTime = nStartedLaggingTime; }
 
   // processing functions
 
@@ -240,6 +241,7 @@ public:
   bool IsReserved(std::string name) const;
   bool IsDownloading() const;
   void StartCountDown(bool force);
+  void StartCountDownNow(bool force);
   void StopPlayers(const std::string& reason);
   void StopLaggers(const std::string& reason);
   void CreateVirtualHost();

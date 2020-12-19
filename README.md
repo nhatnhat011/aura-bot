@@ -4,6 +4,16 @@
 [![Build Status](https://ci.appveyor.com/api/projects/status/u67db01q5nbt172l/branch/master?svg=true)](https://ci.appveyor.com/project/Josko/aura-bot/branch/master)
 [![Build Status](https://scan.coverity.com/projects/1748/badge.svg)](https://scan.coverity.com/projects/josko-aura-bot)
 
+Fork of Josko's aura-bot
+------------------------
+
+This is a fork of Josko's with the following changes:
+* Support for 1.28.5 according to [this issue comment](https://github.com/Josko/aura-bot/issues/72#issuecomment-387125132)
+* Added game owner and root admin protection so they can't be kicked or bullied by regular admins
+* Show commands to all players when a command is given
+* Added startnow command
+* Newest PG readable StormLib added
+
 Overview
 --------
 

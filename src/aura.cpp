@@ -50,6 +50,10 @@
 #include <process.h>
 #endif
 
+#include <chrono> 
+#include <ctime> 
+#include <iostream>
+
 #define VERSION "1.32"
 
 using namespace std;
@@ -62,7 +66,13 @@ bool          gRestart = false;
 
 void Print2(const string& message)
 {
-  Print(message);
+  auto timenow = chrono::system_clock::to_time_t(chrono::system_clock::now());
+  char *timestring  = ctime(&timenow);
+  if (timestring[strlen(timestring) - 1] == '\n') timestring[strlen(timestring) - 1] = '\0';
+  
+  string new_message = "[" + string(timestring) + "] " + message;
+
+  Print(new_message);
 
   if (gAura->m_IRC)
     gAura->m_IRC->SendMessageIRC(message, string());
