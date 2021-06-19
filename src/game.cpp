@@ -2231,6 +2231,13 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
         case HashCode("startn"):
         case HashCode("sn"):
         {
+
+          if (!IsOwner(User) || !bnet->IsRootAdmin(User))
+          {
+            QueueChatCommand("You cannot start someone else's lobby if you are not root admin", User);
+            break;
+          }
+
           if (m_CountDownStarted){
             break;
           }
@@ -2258,6 +2265,13 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
         case HashCode("start"):
         case HashCode("s"):
         {
+
+          if (!IsOwner(User) || !bnet->IsRootAdmin(User))
+          {
+            QueueChatCommand("You cannot start someone else's lobby if you are not root admin", User);
+            break;
+          }
+
           if (m_CountDownStarted)
             break;
 
@@ -2870,7 +2884,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
             break;
 
           for (auto& bnet : m_Aura->m_BNETs)
-            bnet->QueueChatCommand(Payload);
+            SendAllChat(Payload);
 
           break;
         }

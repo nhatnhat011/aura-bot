@@ -1380,7 +1380,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
               break;
 
             if (IsRootAdmin(User) || Payload[0] != '/')
-              QueueChatCommand(Payload);
+              game->SendAllChat(Payload);
 
             break;
           }
@@ -1492,8 +1492,9 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
             if (!m_Aura->m_CurrentGame || m_Aura->m_CurrentGame->GetCountDownStarted() || m_Aura->m_CurrentGame->GetNumHumanPlayers() == 0)
               break;
 
-            if (!IsRootAdmin(User)){
-              QueueChatCommand("You cannot start someone else's lobby if you are not root admin", User, Whisper, m_IRC);
+            if (!IsRootAdmin(User))
+            {
+              QueueChatCommand("You cannot start a lobby if you are not root admin", User, Whisper, m_IRC);
               break;
             }
 
@@ -1881,7 +1882,8 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
 
           case HashCode("version"):
           {
-            QueueChatCommand("Version: Aura " + m_Aura->m_Version, User, Whisper, m_IRC);
+            if (IsRootAdmin(User))
+              QueueChatCommand("Version: Aura " + m_Aura->m_Version, User, Whisper, m_IRC);
             break;
           }
         }

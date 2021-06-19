@@ -92,8 +92,7 @@ Then proceed to build Aura:
 
 	cd ../../..
 	make
-
-Now you can run Aura by executing `./aura++` or install it to your path using `sudo make install`.
+	sudo make install
 
 **Note**: gcc version needs to be 5 or higher along with a compatible libc.
 
