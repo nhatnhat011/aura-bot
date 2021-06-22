@@ -1379,9 +1379,10 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
             if (Payload.empty())
               break;
 
-            if (IsRootAdmin(User) || Payload[0] != '/')
-              QueueChatCommand(Payload);
-
+            for (auto& game : m_Aura->m_Games){
+              if (IsRootAdmin(User) || Payload[0] != '/')
+                game->SendAllChat(Payload);
+            }
             break;
           }
 
