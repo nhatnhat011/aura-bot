@@ -2870,7 +2870,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
             break;
 
           for (auto& bnet : m_Aura->m_BNETs)
-            bnet->QueueChatCommand(Payload);
+            SendAllChat(Payload);
 
           break;
         }
