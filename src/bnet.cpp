@@ -1380,7 +1380,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
               break;
 
             if (IsRootAdmin(User) || Payload[0] != '/')
-              game->SendAllChat(Payload);
+              QueueChatCommand(Payload);
 
             break;
           }
