@@ -74,7 +74,7 @@ Linux users will probably need some packages for it to build:
 
 For building StormLib execute the following commands (line by line):
 
-	cd aura-bot/StormLib
+	cd ~/aura-bot/StormLib
 	mkdir build
 	cd build
 	cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DYNAMIC_MODULE=1 ..
@@ -83,14 +83,13 @@ For building StormLib execute the following commands (line by line):
 
 Continue building bncsutil:
 
-	cd ../..
-	cd bncsutil/src/bncsutil
+	cd ~/aura-bot/bncsutil/src/bncsutil
 	make
 	sudo make install
 
 Then proceed to build Aura:
 
-	cd ../../..
+	cd ~/aura-bot/
 	make
 	sudo make install
 
