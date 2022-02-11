@@ -134,6 +134,7 @@ public:
   bool IsAdmin(std::string name);
   bool IsRootAdmin(std::string name);
   CDBBan* IsBannedName(std::string name);
+  CDBBan* IsBannedIp(std::string ip);
   void HoldFriends(CGame* game);
   void HoldClan(CGame* game);
 

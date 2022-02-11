@@ -804,7 +804,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
 
               delete Ban;
             }
-            else if (m_Aura->m_DB->BanAdd(m_Server, Victim, User, Reason))
+            else if (m_Aura->m_DB->BanAdd(m_Server, Victim, User, Reason, string( )))
               QueueChatCommand("Banned user [" + Victim + "] on server [" + m_Server + "]", User, Whisper, m_IRC);
             else
               QueueChatCommand("Error banning user [" + Victim + "] on server [" + m_Server + "]", User, Whisper, m_IRC);
@@ -2100,8 +2100,16 @@ CDBBan* CBNET::IsBannedName(string name)
 {
   transform(begin(name), end(name), begin(name), ::tolower);
 
-  if (CDBBan* Ban = m_Aura->m_DB->BanCheck(m_Server, name))
+  if (CDBBan* Ban = m_Aura->m_DB->BanCheck(m_Server, name, string( )))
     return Ban;
+
+  return nullptr;
+}
+
+CDBBan* CBNET::IsBannedIp(string ip)
+{
+  if (CDBBan* IpBan = m_Aura->m_DB->BanCheck(m_Server, string( ), ip))
+    return IpBan;
 
   return nullptr;
 }

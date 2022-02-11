@@ -1242,16 +1242,20 @@ void CGame::EventPlayerJoined(CPotentialPlayer* potential, CIncomingJoinPlayer* 
   {
     if (bnet->GetServer() == JoinedRealm)
     {
-      CDBBan* Ban = bnet->IsBannedName(joinPlayer->GetName());
+      CDBBan* Ban   = bnet->IsBannedName(joinPlayer->GetName());
+      CDBBan* IpBan = bnet->IsBannedIp(potential->GetExternalIPString());
 
-      if (Ban)
+      if (Ban || IpBan)
       {
         Print2("[GAME: " + m_GameName + "] player [" + joinPlayer->GetName() + "|" + potential->GetExternalIPString() + "] is banned");
 
         if (m_IgnoredNames.find(joinPlayer->GetName()) == end(m_IgnoredNames))
         {
           SendAllChat(joinPlayer->GetName() + " is trying to join the game but is banned");
-          SendAllChat("User [" + Ban->GetName() + "] was banned on server [" + Ban->GetServer() + "] on " + Ban->GetDate() + " by [" + Ban->GetAdmin() + "] because [" + Ban->GetReason() + "]");
+          if (Ban)
+            SendAllChat("User [" + joinPlayer->GetName() + "] was banned on server [" + Ban->GetServer() + "] on " + Ban->GetDate() + " by [" + Ban->GetAdmin() + "] because [" + Ban->GetReason() + "]");
+          if (IpBan)
+            SendAllChat("User [" + joinPlayer->GetName() + "] was banned on server [" + IpBan->GetServer() + "] on " + IpBan->GetDate() + " by [" + IpBan->GetAdmin() + "] because [" + IpBan->GetReason() + "]");
           m_IgnoredNames.insert(joinPlayer->GetName());
         }
 
@@ -1263,6 +1267,7 @@ void CGame::EventPlayerJoined(CPotentialPlayer* potential, CIncomingJoinPlayer* 
         potential->SetDeleteMe(true);
 
         delete Ban;
+        delete IpBan;
         return;
       }
     }
@@ -1814,7 +1819,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
             break;
           }
 
-          m_Aura->m_DB->BanAdd(m_DBBanLast->GetServer(), m_DBBanLast->GetName(), User, Payload);
+          m_Aura->m_DB->BanAdd(m_DBBanLast->GetServer(), m_DBBanLast->GetName(), User, Payload, m_DBBanLast->GetIp());
           SendAllChat("Player [" + m_DBBanLast->GetName() + "] was banned by player [" + User + "] on server [" + m_DBBanLast->GetServer() + "]");
           break;
         }
@@ -2672,7 +2677,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
               SendChat(player, "Unable to ban player [" + Victim + "]. No matches found");
             else if (Matches == 1)
             {
-              m_Aura->m_DB->BanAdd(LastMatch->GetServer(), LastMatch->GetName(), User, Reason);
+              m_Aura->m_DB->BanAdd(LastMatch->GetServer(), LastMatch->GetName(), User, Reason, LastMatch->GetIp());
               SendAllChat("Player [" + LastMatch->GetName() + "] was banned by player [" + User + "] on server [" + LastMatch->GetServer() + "]");
             }
             else
@@ -2687,7 +2692,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
               SendChat(player, "Unable to ban player [" + Victim + "]. No matches found");
             else if (Matches == 1)
             {
-              m_Aura->m_DB->BanAdd(LastMatch->GetJoinedRealm(), LastMatch->GetName(), User, Reason);
+              m_Aura->m_DB->BanAdd(LastMatch->GetJoinedRealm(), LastMatch->GetName(), User, Reason, LastMatch->GetExternalIPString());
               SendAllChat("Player [" + LastMatch->GetName() + "] was banned by player [" + User + "] on server [" + LastMatch->GetJoinedRealm() + "]");
             }
             else
@@ -2756,7 +2761,7 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
 
           for (auto& bnet : m_Aura->m_BNETs)
           {
-            CDBBan* Ban = m_Aura->m_DB->BanCheck(bnet->GetServer(), Payload);
+            CDBBan* Ban = m_Aura->m_DB->BanCheck(bnet->GetServer(), Payload, string( ));
 
             if (Ban)
             {
@@ -3754,7 +3759,9 @@ void CGame::EventPlayerMapSize(CGamePlayer* player, CIncomingMapSize* mapSize)
   {
     // the player doesn't have the map
 
-    if (Admin || m_Aura->m_AllowDownloads)
+    SendAllChat(player->GetName() + ", Map downloading is disabled for this bot, please download the map manually");
+
+    if (false)
     {
       string* MapData = m_Map->GetMapData();
 
@@ -3782,13 +3789,6 @@ void CGame::EventPlayerMapSize(CGamePlayer* player, CIncomingMapSize* mapSize)
         player->SetLeftCode(PLAYERLEAVE_LOBBY);
         OpenSlot(GetSIDFromPID(player->GetPID()), false);
       }
-    }
-    else
-    {
-      player->SetDeleteMe(true);
-      player->SetLeftReason("doesn't have the map and map downloads are disabled");
-      player->SetLeftCode(PLAYERLEAVE_LOBBY);
-      OpenSlot(GetSIDFromPID(player->GetPID()), false);
     }
   }
   else if (player->GetDownloadStarted())
@@ -3986,7 +3986,7 @@ void CGame::EventGameStarted()
   // so we create a "potential ban" for each player and only store it in the database if requested to by an admin
 
   for (auto& player : m_Players)
-    m_DBBans.push_back(new CDBBan(player->GetJoinedRealm(), player->GetName(), string(), string(), string()));
+    m_DBBans.push_back(new CDBBan(player->GetJoinedRealm(), player->GetName(), string(), string(), string(), player->GetExternalIPString()));
 }
 
 void CGame::EventGameLoaded()

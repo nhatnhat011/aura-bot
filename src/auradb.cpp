@@ -113,7 +113,7 @@ CAuraDB::CAuraDB(CConfig* CFG)
     if (m_DB->Exec(R"(CREATE TABLE admins ( id INTEGER PRIMARY KEY, name TEXT NOT NULL, server TEXT NOT NULL DEFAULT "" ))") != SQLITE_OK)
       Print("[SQLITE3] error creating admins table - " + m_DB->GetError());
 
-    if (m_DB->Exec("CREATE TABLE bans ( id INTEGER PRIMARY KEY, server TEXT NOT NULL, name TEXT NOT NULL, date TEXT NOT NULL, admin TEXT NOT NULL, reason TEXT )") != SQLITE_OK)
+    if (m_DB->Exec("CREATE TABLE bans ( id INTEGER PRIMARY KEY, server TEXT NOT NULL, name TEXT NOT NULL, date TEXT NOT NULL, admin TEXT NOT NULL, reason TEXT, ip TEXT )") != SQLITE_OK)
       Print("[SQLITE3] error creating bans table - " + m_DB->GetError());
 
     if (m_DB->Exec("CREATE TABLE players ( id INTEGER PRIMARY KEY, name TEXT NOT NULL, games INTEGER, dotas INTEGER, loadingtime INTEGER, duration INTEGER, left INTEGER, wins INTEGER, losses INTEGER, kills INTEGER, deaths INTEGER, creepkills INTEGER, creepdenies INTEGER, assists INTEGER, neutralkills INTEGER, towerkills INTEGER, raxkills INTEGER, courierkills INTEGER )") != SQLITE_OK)
@@ -146,6 +146,15 @@ CAuraDB::CAuraDB(CConfig* CFG)
 
   if (m_DB->Exec(R"(CREATE TEMPORARY TABLE rootadmins ( id INTEGER PRIMARY KEY, name TEXT NOT NULL, server TEXT NOT NULL DEFAULT "" ))") != SQLITE_OK)
     Print("[SQLITE3] error creating temporary rootadmins table - " + m_DB->GetError());
+
+  if (SchemaNumber == "1")
+  {
+    if (m_DB->Exec(R"(UPDATE config SET value = "2" WHERE name = "schema_number")") != SQLITE_OK)
+      Print("[SQLITE3] error updating config's schema number - " + m_DB->GetError());
+
+    if (m_DB->Exec("ALTER TABLE bans ADD COLUMN ip TEXT") != SQLITE_OK)
+      Print("[SQLITE3] error altering the bans table to add ip column - " + m_DB->GetError());
+  }
 }
 
 CAuraDB::~CAuraDB()
@@ -421,34 +430,36 @@ uint32_t CAuraDB::BanCount(const string& server)
   return Count;
 }
 
-CDBBan* CAuraDB::BanCheck(const string& server, string user)
+CDBBan* CAuraDB::BanCheck(const string& server, string user, string ip)
 {
   CDBBan* Ban = nullptr;
   transform(begin(user), end(user), begin(user), ::tolower);
 
   if (!BanCheckStmt)
-    m_DB->Prepare("SELECT name, date, admin, reason FROM bans WHERE server=? AND name=?", &BanCheckStmt);
+    m_DB->Prepare("SELECT name, date, admin, reason, ip FROM bans WHERE server=? AND (name=? OR ip=?)", &BanCheckStmt);
 
   if (BanCheckStmt)
   {
     sqlite3_bind_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 1, server.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 2, user.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 3, ip.c_str(), -1, SQLITE_TRANSIENT);
 
     const int32_t RC = m_DB->Step(BanCheckStmt);
 
     if (RC == SQLITE_ROW)
     {
-      if (sqlite3_column_count(static_cast<sqlite3_stmt*>(BanCheckStmt)) == 4)
+      if (sqlite3_column_count(static_cast<sqlite3_stmt*>(BanCheckStmt)) == 5)
       {
         string Name   = string((char*)sqlite3_column_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 0));
         string Date   = string((char*)sqlite3_column_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 1));
         string Admin  = string((char*)sqlite3_column_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 2));
         string Reason = string((char*)sqlite3_column_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 3));
+        string Ip     = string((char*)sqlite3_column_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 4));
 
-        Ban = new CDBBan(server, Name, Date, Admin, Reason);
+        Ban = new CDBBan(server, Name, Date, Admin, Reason, Ip);
       }
       else
-        Print("[SQLITE3] error checking ban [" + server + " : " + user + "] - row doesn't have 4 columns");
+        Print("[SQLITE3] error checking ban [" + server + " : " + user + "] - row doesn't have 5 columns");
     }
     else if (RC == SQLITE_ERROR)
       Print("[SQLITE3] error checking ban [" + server + " : " + user + "] - " + m_DB->GetError());
@@ -461,12 +472,12 @@ CDBBan* CAuraDB::BanCheck(const string& server, string user)
   return Ban;
 }
 
-bool CAuraDB::BanAdd(const string& server, string user, const string& admin, const string& reason)
+bool CAuraDB::BanAdd(const string& server, string user, const string& admin, const string& reason, string ip)
 {
   bool          Success = false;
   sqlite3_stmt* Statement;
   transform(begin(user), end(user), begin(user), ::tolower);
-  m_DB->Prepare("INSERT INTO bans ( server, name, date, admin, reason ) VALUES ( ?, ?, date('now'), ?, ? )", reinterpret_cast<void**>(&Statement));
+  m_DB->Prepare("INSERT INTO bans ( server, name, date, admin, reason, ip ) VALUES ( ?, ?, date('now'), ?, ?, ? )", reinterpret_cast<void**>(&Statement));
 
   if (Statement)
   {
@@ -474,18 +485,19 @@ bool CAuraDB::BanAdd(const string& server, string user, const string& admin, con
     sqlite3_bind_text(Statement, 2, user.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(Statement, 3, admin.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(Statement, 4, reason.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(Statement, 5, ip.c_str(), -1, SQLITE_TRANSIENT);
 
     const int32_t RC = m_DB->Step(Statement);
 
     if (RC == SQLITE_DONE)
       Success = true;
     else if (RC == SQLITE_ERROR)
-      Print("[SQLITE3] error adding ban [" + server + " : " + user + " : " + admin + " : " + reason + "] - " + m_DB->GetError());
+      Print("[SQLITE3] error adding ban [" + server + " : " + user + " : " + admin + " : " + reason + " : " + ip + "] - " + m_DB->GetError());
 
     m_DB->Finalize(Statement);
   }
   else
-    Print("[SQLITE3] prepare error adding ban [" + server + " : " + user + " : " + admin + " : " + reason + "] - " + m_DB->GetError());
+    Print("[SQLITE3] prepare error adding ban [" + server + " : " + user + " : " + admin + " : " + reason + " : " + ip + "] - " + m_DB->GetError());
 
   return Success;
 }
@@ -867,12 +879,13 @@ bool CAuraDB::FromAdd(uint32_t ip1, uint32_t ip2, const string& country)
 // CDBBan
 //
 
-CDBBan::CDBBan(string nServer, string nName, string nDate, string nAdmin, string nReason)
+CDBBan::CDBBan(string nServer, string nName, string nDate, string nAdmin, string nReason, string nIp)
   : m_Server(std::move(nServer)),
     m_Name(std::move(nName)),
     m_Date(std::move(nDate)),
     m_Admin(std::move(nAdmin)),
-    m_Reason(std::move(nReason))
+    m_Reason(std::move(nReason)),
+    m_Ip(std::move(nIp))
 {
 }
 

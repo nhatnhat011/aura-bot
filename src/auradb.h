@@ -39,7 +39,8 @@ CREATE TABLE bans (
     name TEXT NOT NULL,
     date TEXT NOT NULL,
     admin TEXT NOT NULL,
-    reason TEXT
+    reason TEXT,
+    ip TEXT
 )
 
 CREATE TABLE players (
@@ -165,8 +166,8 @@ public:
   bool RootAdminAdd(const std::string& server, std::string user);
   bool AdminRemove(const std::string& server, std::string user);
   uint32_t BanCount(const std::string& server);
-  CDBBan* BanCheck(const std::string& server, std::string user);
-  bool BanAdd(const std::string& server, std::string user, const std::string& admin, const std::string& reason);
+  CDBBan* BanCheck(const std::string& server, std::string user, std::string ip);
+  bool BanAdd(const std::string& server, std::string user, const std::string& admin, const std::string& reason, std::string ip);
   bool BanRemove(const std::string& server, std::string user);
   bool BanRemove(std::string user);
   void GamePlayerAdd(std::string name, uint64_t loadingtime, uint64_t duration, uint64_t left);
@@ -187,9 +188,10 @@ private:
   std::string m_Date;
   std::string m_Admin;
   std::string m_Reason;
+  std::string m_Ip;
 
 public:
-  CDBBan(std::string nServer, std::string nName, std::string nDate, std::string nAdmin, std::string nReason);
+  CDBBan(std::string nServer, std::string nName, std::string nDate, std::string nAdmin, std::string nReason, std::string nIp);
   ~CDBBan();
 
   inline std::string GetServer() const { return m_Server; }
@@ -197,6 +199,7 @@ public:
   inline std::string GetDate() const { return m_Date; }
   inline std::string GetAdmin() const { return m_Admin; }
   inline std::string GetReason() const { return m_Reason; }
+  inline std::string GetIp() const { return m_Ip; }
 };
 
 //
