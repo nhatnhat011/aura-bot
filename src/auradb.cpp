@@ -126,17 +126,17 @@ CAuraDB::CAuraDB(CConfig* CFG)
 
     if (Statement)
     {
-      sqlite3_bind_text(Statement, 1, "1", -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text(Statement, 1, "2", -1, SQLITE_TRANSIENT);
 
       const int32_t RC = m_DB->Step(Statement);
 
       if (RC == SQLITE_ERROR)
-        Print("[SQLITE3] error inserting schema number [1] - " + m_DB->GetError());
+        Print("[SQLITE3] error inserting schema number [2] - " + m_DB->GetError());
 
       m_DB->Finalize(Statement);
     }
     else
-      Print("[SQLITE3] prepare error inserting schema number [1] - " + m_DB->GetError());
+      Print("[SQLITE3] prepare error inserting schema number [2] - " + m_DB->GetError());
   }
   else
     Print("[SQLITE3] found schema number [" + SchemaNumber + "]");
