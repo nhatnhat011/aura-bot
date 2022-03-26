@@ -2100,7 +2100,7 @@ CDBBan* CBNET::IsBannedName(string name)
 {
   transform(begin(name), end(name), begin(name), ::tolower);
 
-  if (CDBBan* Ban = m_Aura->m_DB->BanCheck(m_Server, name, string( )))
+  if (CDBBan* Ban = m_Aura->m_DB->BanCheck(m_Server, name, NULL))
     return Ban;
 
   return nullptr;
@@ -2108,7 +2108,7 @@ CDBBan* CBNET::IsBannedName(string name)
 
 CDBBan* CBNET::IsBannedIp(string ip)
 {
-  if (CDBBan* IpBan = m_Aura->m_DB->BanCheck(m_Server, string( ), ip))
+  if (CDBBan* IpBan = m_Aura->m_DB->BanCheck(m_Server, NULL, ip))
     return IpBan;
 
   return nullptr;
