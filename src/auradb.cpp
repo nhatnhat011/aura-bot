@@ -441,8 +441,16 @@ CDBBan* CAuraDB::BanCheck(const string& server, string user, string ip)
   if (BanCheckStmt)
   {
     sqlite3_bind_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 1, server.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 2, user.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 3, ip.c_str() == string() ? NULL : ip.c_str(), -1, SQLITE_TRANSIENT);
+
+    if (user.empty())
+      sqlite3_bind_null(static_cast<sqlite3_stmt*>(BanCheckStmt), 2);
+    else
+      sqlite3_bind_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 2, user.c_str(), -1, SQLITE_TRANSIENT);
+
+    if (ip.empty())
+      sqlite3_bind_null(static_cast<sqlite3_stmt*>(BanCheckStmt), 3);
+    else
+      sqlite3_bind_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 3, ip.c_str(), -1, SQLITE_TRANSIENT);
 
     const int32_t RC = m_DB->Step(BanCheckStmt);
 
