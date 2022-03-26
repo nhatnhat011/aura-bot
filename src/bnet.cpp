@@ -996,6 +996,12 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
             if (Payload.empty())
               break;
 
+            if (!IsRootAdmin(User))
+            {
+              QueueChatCommand("You don't have access to that command", User, Whisper, m_IRC);
+              break;
+            }
+
             if (m_Aura->m_DB->BanRemove(Payload))
               QueueChatCommand("Unbanned user [" + Payload + "] on all realms", User, Whisper, m_IRC);
             else
