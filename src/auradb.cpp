@@ -440,6 +440,7 @@ CDBBan* CAuraDB::BanCheck(const string& server, string user, string ip)
 
   if (BanCheckStmt)
   {
+    Print("[SQLITE3] creating ban check statement");
     sqlite3_bind_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 1, server.c_str(), -1, SQLITE_TRANSIENT);
 
     if (user.empty())
@@ -452,6 +453,7 @@ CDBBan* CAuraDB::BanCheck(const string& server, string user, string ip)
     else
       sqlite3_bind_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 3, ip.c_str(), -1, SQLITE_TRANSIENT);
 
+    Print("[SQLITE3] ban check statement finished");
     const int32_t RC = m_DB->Step(BanCheckStmt);
 
     if (RC == SQLITE_ROW)
@@ -482,6 +484,7 @@ CDBBan* CAuraDB::BanCheck(const string& server, string user, string ip)
 
 bool CAuraDB::BanAdd(const string& server, string user, const string& admin, const string& reason, string ip)
 {
+  Print("[SQLITE3] starting the ban now");
   bool          Success = false;
   sqlite3_stmt* Statement;
   transform(begin(user), end(user), begin(user), ::tolower);
@@ -489,13 +492,18 @@ bool CAuraDB::BanAdd(const string& server, string user, const string& admin, con
 
   if (Statement)
   {
+    Print("[SQLITE3] creating statements for ban adding");
     sqlite3_bind_text(Statement, 1, server.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(Statement, 2, user.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(Statement, 3, admin.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(Statement, 4, reason.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(Statement, 5, ip.c_str(), -1, SQLITE_TRANSIENT);
+    if (ip.empty())
+      sqlite3_bind_null(Statement, 5);
+    else
+      sqlite3_bind_text(Statement, 5, ip.c_str(), -1, SQLITE_TRANSIENT);
 
     const int32_t RC = m_DB->Step(Statement);
+    Print("[SQLITE3] finished creating statements");
 
     if (RC == SQLITE_DONE)
       Success = true;

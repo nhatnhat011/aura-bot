@@ -796,7 +796,9 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
                 Reason = Reason.substr(Start);
             }
 
+            Print2("[SQLITE3] checking if victim is already banned");
             CDBBan* Ban = IsBannedName(Victim);
+            Print2("[SQLITE3] finished checking if victim is already banned");
 
             if (Ban)
             {
@@ -804,8 +806,9 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
 
               delete Ban;
             }
-            else if (m_Aura->m_DB->BanAdd(m_Server, Victim, User, Reason, NULL))
+            else if (m_Aura->m_DB->BanAdd(m_Server, Victim, User, Reason, string( )))
             {
+              Print2("[SQLITE3] victim is not already banned, processing the ban now");
               QueueChatCommand("Banned user [" + Victim + "] on server [" + m_Server + "]", User, Whisper, m_IRC);
             }
             else
