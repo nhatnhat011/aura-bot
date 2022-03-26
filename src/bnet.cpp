@@ -805,10 +805,13 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
               delete Ban;
             }
             else if (m_Aura->m_DB->BanAdd(m_Server, Victim, User, Reason, NULL))
+            {
               QueueChatCommand("Banned user [" + Victim + "] on server [" + m_Server + "]", User, Whisper, m_IRC);
+            }
             else
+            {
               QueueChatCommand("Error banning user [" + Victim + "] on server [" + m_Server + "]", User, Whisper, m_IRC);
-
+            }
             break;
           }
 
