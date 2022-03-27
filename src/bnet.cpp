@@ -862,7 +862,9 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
             if (Payload.empty())
               break;
 
+            Print2("[SQLITE3] checking if user is banned or not");
             CDBBan* Ban = IsBannedName(Payload);
+            Print2("[SQLITE3] results from checking is done");
 
             if (Ban)
               QueueChatCommand("User [" + Payload + "] was banned on server [" + m_Server + "] on " + Ban->GetDate() + " by [" + Ban->GetAdmin() + "] because [" + Ban->GetReason() + "]", User, Whisper, m_IRC);
@@ -2112,7 +2114,7 @@ CDBBan* CBNET::IsBannedName(string name)
 {
   transform(begin(name), end(name), begin(name), ::tolower);
 
-  if (CDBBan* Ban = m_Aura->m_DB->BanCheck(m_Server, name, string( )))
+  if (CDBBan* Ban = m_Aura->m_DB->BanCheck(m_Server, name, string()))
     return Ban;
 
   return nullptr;
