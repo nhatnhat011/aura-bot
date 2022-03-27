@@ -454,7 +454,7 @@ CDBBan* CAuraDB::BanCheck(const string& server, string user, string ip)
       sqlite3_bind_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 3, ip.c_str(), -1, SQLITE_TRANSIENT);
 
     const int32_t RC = m_DB->Step(BanCheckStmt);
-    Print("[SQLITE3] ban check statement finished");
+    Print("[SQLITE3] ban check statement finished:\n" + string((char*)sqlite3_expanded_sql(static_cast<sqlite3_stmt*>(BanCheckStmt))));
 
     if (RC == SQLITE_ROW)
     {
