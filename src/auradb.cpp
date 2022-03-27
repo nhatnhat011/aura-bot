@@ -468,7 +468,11 @@ CDBBan* CAuraDB::BanCheck(const string& server, string user, string ip)
         Print("[SQLITE3] Admin: " + Admin);
         string Reason = string((char*)sqlite3_column_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 3));
         Print("[SQLITE3] Reason: " + Reason);
-        string Ip     = string((char*)sqlite3_column_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 4));
+
+        string Ip = string();
+        if (sqlite3_column_type(static_cast<sqlite3_stmt*>(BanCheckStmt), 4) != SQLITE_NULL)
+          string Ip = string((char*)sqlite3_column_text(static_cast<sqlite3_stmt*>(BanCheckStmt), 4));
+        
         Print("[SQLITE3] IP: " + Ip);
 
         Ban = new CDBBan(server, Name, Date, Admin, Reason, Ip);
