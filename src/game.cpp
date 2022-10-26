@@ -1693,81 +1693,6 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
       {
 
         //
-        // !PING
-        //
-        case HashCode("ping"):
-        case HashCode("p"):
-        {
-          // kick players with ping higher than payload if payload isn't empty
-          // we only do this if the game hasn't started since we don't want to kick players from a game in progress
-
-          uint32_t Kicked = 0, KickPing = 0;
-
-          if (!m_GameLoading && !m_GameLoaded && !Payload.empty())
-          {
-            try
-            {
-              KickPing = stoul(Payload);
-            }
-            catch (...)
-            {
-              // do nothing
-            }
-          }
-
-          // copy the m_Players vector so we can sort by descending ping so it's easier to find players with high pings
-
-          vector<CGamePlayer*> SortedPlayers = m_Players;
-          sort(begin(SortedPlayers), end(SortedPlayers), [](const CGamePlayer* a, const CGamePlayer* b) {
-            return a->GetPing(false) > b->GetPing(false);
-          });
-          string Pings;
-
-          for (auto i = begin(SortedPlayers); i != end(SortedPlayers); ++i)
-          {
-            Pings += (*i)->GetName();
-            Pings += ": ";
-
-            if ((*i)->GetNumPings() > 0)
-            {
-              Pings += to_string((*i)->GetPing(m_Aura->m_LCPings));
-
-              if (!m_GameLoaded && !m_GameLoading && !(*i)->GetReserved() && KickPing > 0 && (*i)->GetPing(m_Aura->m_LCPings) > KickPing)
-              {
-                (*i)->SetDeleteMe(true);
-                (*i)->SetLeftReason("was kicked for excessive ping " + to_string((*i)->GetPing(m_Aura->m_LCPings)) + " > " + to_string(KickPing));
-                (*i)->SetLeftCode(PLAYERLEAVE_LOBBY);
-                OpenSlot(GetSIDFromPID((*i)->GetPID()), false);
-                ++Kicked;
-              }
-
-              Pings += "ms";
-            }
-            else
-              Pings += "N/A";
-
-            if (i != end(SortedPlayers) - 1)
-              Pings += ", ";
-
-            if ((m_GameLoading || m_GameLoaded) && Pings.size() > 100)
-            {
-              // cut the text into multiple lines ingame
-
-              SendAllChat(Pings);
-              Pings.clear();
-            }
-          }
-
-          if (!Pings.empty())
-            SendAllChat(Pings);
-
-          if (Kicked > 0)
-            SendAllChat("Kicking " + to_string(Kicked) + " players with pings greater than " + to_string(KickPing));
-
-          break;
-        }
-
-        //
         // !FROM
         //
 
@@ -3403,8 +3328,82 @@ bool CGame::EventPlayerBotCommand(CGamePlayer* player, string& command, string& 
   {
 
     //
-    // !CHECKME
+    // !PING
     //
+    case HashCode("ping"):
+    case HashCode("p"):
+    {
+      // kick players with ping higher than payload if payload isn't empty
+      // we only do this if the game hasn't started since we don't want to kick players from a game in progress
+
+      uint32_t Kicked = 0, KickPing = 0;
+
+      if (!m_GameLoading && !m_GameLoaded && !Payload.empty())
+      {
+        try
+        {
+          KickPing = stoul(Payload);
+        }
+        catch (...)
+        {
+          // do nothing
+        }
+      }
+
+      // copy the m_Players vector so we can sort by descending ping so it's easier to find players with high pings
+
+      vector<CGamePlayer*> SortedPlayers = m_Players;
+      sort(begin(SortedPlayers), end(SortedPlayers), [](const CGamePlayer* a, const CGamePlayer* b)
+           { return a->GetPing(false) > b->GetPing(false); });
+      string Pings;
+
+      for (auto i = begin(SortedPlayers); i != end(SortedPlayers); ++i)
+      {
+        Pings += (*i)->GetName();
+        Pings += ": ";
+
+        if ((*i)->GetNumPings() > 0)
+        {
+          Pings += to_string((*i)->GetPing(m_Aura->m_LCPings));
+
+          if (!m_GameLoaded && !m_GameLoading && !(*i)->GetReserved() && KickPing > 0 && (*i)->GetPing(m_Aura->m_LCPings) > KickPing)
+          {
+            (*i)->SetDeleteMe(true);
+            (*i)->SetLeftReason("was kicked for excessive ping " + to_string((*i)->GetPing(m_Aura->m_LCPings)) + " > " + to_string(KickPing));
+            (*i)->SetLeftCode(PLAYERLEAVE_LOBBY);
+            OpenSlot(GetSIDFromPID((*i)->GetPID()), false);
+            ++Kicked;
+          }
+
+          Pings += "ms";
+        }
+        else
+          Pings += "N/A";
+
+        if (i != end(SortedPlayers) - 1)
+          Pings += ", ";
+
+        if ((m_GameLoading || m_GameLoaded) && Pings.size() > 100)
+        {
+          // cut the text into multiple lines ingame
+
+          SendAllChat(Pings);
+          Pings.clear();
+        }
+      }
+
+      if (!Pings.empty())
+        SendAllChat(Pings);
+
+      if (Kicked > 0)
+        SendAllChat("Kicking " + to_string(Kicked) + " players with pings greater than " + to_string(KickPing));
+
+      break;
+    }
+
+      //
+      // !CHECKME
+      //
 
     case HashCode("checkme"):
     {
