@@ -713,29 +713,40 @@ bool CGame::Update(void* fd, void* send_fd)
   if (!m_GameLoading && !m_GameLoaded && m_Aura->m_LobbyTimeLimit > 0)
   {
     // check if there's a player with reserved status in the game
+	  
+    bool isrootadmin = false;
     bool isreserved = false;
     for (auto& player : m_Players)
     {
-      if (player->GetReserved())
+      if (m_Aura->m_DB->RootAdminCheck(player->GetName()))
       {
-        isreserved = true;
+        isrootadmin = true;
 	break;
+      }
+      else {
+        if (player->GetReserved())
+        { 
+          isreserved = true;
+	  break;
+        }
       }
     }
 
     // check if we've hit the time limit
-    if (isreserved)
-    {
-      if (Time - m_CreationTime > static_cast<int64_t>((m_Aura->m_LobbyTimeLimit + 5) * 60))
+    if (!isrootadmin) {
+      if (isreserved)
       {
-        Print2("[GAME: " + m_GameName + "] is over (reserved lobby time limit hit)");
-        return true;
-      }
-    } else {
-      if (Time - m_CreationTime > static_cast<int64_t>(m_Aura->m_LobbyTimeLimit * 60))
-      {
-        Print2("[GAME: " + m_GameName + "] is over (lobby time limit hit)");
-        return true;
+        if (Time - m_CreationTime > static_cast<int64_t>((m_Aura->m_LobbyTimeLimit + 5) * 60))
+        {
+          Print2("[GAME: " + m_GameName + "] is over (reserved lobby time limit hit)");
+          return true;
+        }
+      } else {
+        if (Time - m_CreationTime > static_cast<int64_t>(m_Aura->m_LobbyTimeLimit * 60))
+        {
+          Print2("[GAME: " + m_GameName + "] is over (lobby time limit hit)");
+          return true;
+        }
       }
     }
   }
