@@ -13,10 +13,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: configure
-      run: ./configure
+    - name: lib
+      run: cd StormLib/build && cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DYNAMIC_MODULE=1 ..
     - name: make
-      run: make
+      run: cd ~/bncsutil/src/bncsutil/ && make
+    - name: make
+      run: cd ~/ && make
     - name: make check
       run: make check
     - name: make distcheck
