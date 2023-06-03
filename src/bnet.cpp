@@ -1263,6 +1263,67 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
 
             break;
           }
+              		  
+          //
+          // !DOWNLOADMAP
+          //
+          case HashCode("downloadmap"):
+          case HashCode("dlmap"):
+          case HashCode("dlm"):
+          {
+            if (Payload.empty() || !IsRootAdmin(User))
+              break;
+		  
+            string            Downurl, Mapname;
+            string::size_type Mapnamestart = Payload.find(' ');
+
+            if (Mapnamestart != string::npos)
+            {
+              Downurl    = Payload.substr(0, Mapnamestart);
+              Mapname = Payload.substr(Mapnamestart + 1);
+            }
+
+            if (Mapname.find(".w3x") == string::npos && Mapname.find(".w3m") == string::npos)
+              Mapname.append(".w3x");
+
+            QueueChatCommand(Mapname + " is being downloaded", User, Whisper, m_IRC);
+
+            int statusdl = system(("wget -t 1 --connect-timeout=20 -O '" + m_Aura->m_MapPath + Mapname + "' '" + Downurl + "'").c_str());
+
+            if (statusdl == 0) {
+                 QueueChatCommand(Mapname + " has been downloaded", User, Whisper, m_IRC);
+                 // load map config
+                 QueueChatCommand("Loading map file [" + Mapname + "]", User, Whisper, m_IRC);
+                 CConfig MapCFG;
+                 MapCFG.Set("map_path", R"(Maps\Download\)" + Mapname);
+                 MapCFG.Set("map_localpath", Mapname);
+
+                 if (Mapname.find("DotA") != string::npos)
+                    MapCFG.Set("map_type", "dota");
+
+                 m_Aura->m_Map->Load(&MapCFG, Mapname);
+
+                 if (m_Aura->m_Map) {
+                   const char* ErrorMessage = m_Aura->m_Map->CheckValid();
+                   if (ErrorMessage) {
+                      QueueChatCommand(std::string("Error while loading map: [") + ErrorMessage + "]", User, Whisper, m_IRC);
+                      if (!remove((m_Aura->m_MapPath + Mapname).c_str()))
+                         QueueChatCommand("Deleted [" + Mapname + "]", User, Whisper, m_IRC);
+                      else
+                         QueueChatCommand("Removal failed", User, Whisper, m_IRC);
+                   }
+                 }
+            }
+            else {
+                 QueueChatCommand(Mapname + " download failed", User, Whisper, m_IRC);
+                 if (!remove((m_Aura->m_MapPath + Mapname).c_str()))
+                   QueueChatCommand("Deleted [" + Mapname + "]", User, Whisper, m_IRC);
+                 else
+                   QueueChatCommand("Removal failed", User, Whisper, m_IRC);
+            }
+
+            break;
+          }
 
           //
           // !OPEN (open slot)
