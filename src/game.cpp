@@ -713,22 +713,30 @@ bool CGame::Update(void* fd, void* send_fd)
   if (!m_GameLoading && !m_GameLoaded && m_Aura->m_LobbyTimeLimit > 0)
   {
     // check if there's a player with reserved status in the game
-
+    bool isreserved = false;
     for (auto& player : m_Players)
     {
       if (player->GetReserved())
       {
-        m_LastReservedSeen = Time;
-        break;
+        isreserved = true;
+	break;
       }
     }
 
     // check if we've hit the time limit
-
-    if (Time - m_LastReservedSeen > static_cast<int64_t>(m_Aura->m_LobbyTimeLimit * 60))
+    if (isreserved)
     {
-      Print2("[GAME: " + m_GameName + "] is over (lobby time limit hit)");
-      return true;
+      if (Time - m_CreationTime > static_cast<int64_t>((m_Aura->m_LobbyTimeLimit + 5) * 60))
+      {
+        Print2("[GAME: " + m_GameName + "] is over (reserved lobby time limit hit)");
+        return true;
+      }
+    } else {
+      if (Time - m_CreationTime > static_cast<int64_t>(m_Aura->m_LobbyTimeLimit * 60))
+      {
+        Print2("[GAME: " + m_GameName + "] is over (lobby time limit hit)");
+        return true;
+      }
     }
   }
 
@@ -3759,9 +3767,7 @@ void CGame::EventPlayerMapSize(CGamePlayer* player, CIncomingMapSize* mapSize)
   {
     // the player doesn't have the map
 
-    SendAllChat(player->GetName() + ", Map downloading is disabled for this bot, please download the map manually");
-
-    if (false)
+    if (Admin || m_Aura->m_AllowDownloads)
     {
       string* MapData = m_Map->GetMapData();
 
