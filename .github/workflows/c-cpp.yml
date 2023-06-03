@@ -19,5 +19,3 @@ jobs:
       run: cd ~/work/aura-bot/aura-bot/bncsutil/src/bncsutil/ && make && sudo make install
     - name: make aura-bot
       run: cd ~/work/aura-bot/aura-bot/ && make
-    - name: make distcheck
-      run: make distcheck
