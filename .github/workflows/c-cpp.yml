@@ -13,13 +13,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: lib
+    - name: make stormlib
       run: cd StormLib/build && cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DYNAMIC_MODULE=1 .. && make && sudo make install
-    - name: make
+    - name: make bncsutil
       run: cd ~/work/aura-bot/aura-bot/bncsutil/src/bncsutil/ && make && sudo make install
-    - name: make
+    - name: make aura-bot
       run: cd ~/work/aura-bot/aura-bot/ && make
-    - name: make check
-      run: make check
     - name: make distcheck
       run: make distcheck
