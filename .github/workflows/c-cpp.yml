@@ -14,9 +14,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Add msvc-dev
-      uses: ilammy/msvc-dev-cmd@v1.12.1
-      with:
-        sdk: 8.1
-        vsversion: 2015
+      uses: ilammy/msvc-dev-cmd@v1.4.1
     - name: Build app for release
       run: cl aura.sln /std:c++14.0
