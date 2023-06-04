@@ -16,8 +16,7 @@ jobs:
     - name: Add msvc-dev
       uses: ilammy/msvc-dev-cmd@v1.12.1
       with:
-        arch: win32
         sdk: 8.1
         vsversion: 2015
     - name: Build app for release
-      run: cl aura.sln
+      run: cl aura.sln /std:c++14.0
