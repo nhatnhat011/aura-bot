@@ -14,8 +14,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v1
       with:
-        vs-version: '[14.0,14.4)'
+        vs-version: '[14.0,14.5)'
     - name: Build app for release
       run: msbuild aura.sln -t:rebuild -verbosity:diag -property:Configuration=Release
