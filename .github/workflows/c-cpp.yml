@@ -13,7 +13,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Add msvc-dev
-      uses: ilammy/msvc-dev-cmd@v1.4.1
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        vs-version: '[14.0)'
     - name: Build app for release
-      run: cl aura.sln /std:c++14.0
+      run: msbuild aura.sln -t:rebuild -verbosity:diag -property:Configuration=Release
