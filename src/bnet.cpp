@@ -42,7 +42,7 @@ using namespace std;
 // CBNET
 //
 
-CBNET::CBNET(CAura* nAura, string nServer, const string& nServerAlias, const string& nCDKeyROC, const string& nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, const string& nUserName, const string& nUserPassword, string nFirstChannel, char nCommandTrigger, uint8_t nWar3Version, std::vector<uint8_t> nEXEVersion, std::vector<uint8_t> nEXEVersionHash, string nPasswordHashType, uint32_t nHostCounterID)
+CBNET::CBNET(CAura* nAura, string nServer, uint32_t nServerport, const string& nServerAlias, const string& nCDKeyROC, const string& nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, const string& nUserName, const string& nUserPassword, string nFirstChannel, char nCommandTrigger, uint8_t nWar3Version, std::vector<uint8_t> nEXEVersion, std::vector<uint8_t> nEXEVersionHash, string nPasswordHashType, uint32_t nHostCounterID)
   : m_Aura(nAura),
     m_Socket(new CTCPClient()),
     m_Protocol(new CBNETProtocol()),
@@ -50,6 +50,7 @@ CBNET::CBNET(CAura* nAura, string nServer, const string& nServerAlias, const str
     m_EXEVersion(move(nEXEVersion)),
     m_EXEVersionHash(move(nEXEVersionHash)),
     m_Server(move(nServer)),
+    m_Serverport(nServerport),
     m_CDKeyROC(nCDKeyROC),
     m_CDKeyTFT(nCDKeyTFT),
     m_CountryAbbrev(move(nCountryAbbrev)),
@@ -449,14 +450,14 @@ bool CBNET::Update(void* fd, void* send_fd)
     // attempt to connect to battle.net
 
     m_FirstConnect = false;
-    Print2("[BNET: " + m_ServerAlias + "] connecting to server [" + m_Server + "] on port 6112");
+    Print2("[BNET: " + m_ServerAlias + "] connecting to server [" + m_Server + "] on port " + to_string(m_Serverport));
 
     if (!m_Aura->m_BindAddress.empty())
       Print2("[BNET: " + m_ServerAlias + "] attempting to bind to address [" + m_Aura->m_BindAddress + "]");
 
     if (m_ServerIP.empty())
     {
-      m_Socket->Connect(m_Aura->m_BindAddress, m_Server, 6112);
+      m_Socket->Connect(m_Aura->m_BindAddress, m_Server, m_Serverport);
 
       if (!m_Socket->HasError())
       {
@@ -469,7 +470,7 @@ bool CBNET::Update(void* fd, void* send_fd)
       // use cached server IP address since resolving takes time and is blocking
 
       Print2("[BNET: " + m_ServerAlias + "] using cached server IP address " + m_ServerIP);
-      m_Socket->Connect(m_Aura->m_BindAddress, m_ServerIP, 6112);
+      m_Socket->Connect(m_Aura->m_BindAddress, m_ServerIP, m_Serverport);
     }
 
     m_WaitingToConnect          = false;
