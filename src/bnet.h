@@ -77,6 +77,7 @@ private:
   uint32_t                         m_LastOutPacketSize;         // byte size of the last packet we sent from the m_OutPackets queue
   uint32_t                         m_LocaleID;                  // see: http://msdn.microsoft.com/en-us/library/0h88fahh%28VS.85%29.aspx
   uint32_t                         m_HostCounterID;             // the host counter ID to identify players from this realm
+  uint32_t                         m_Serverport;                // server port
   uint8_t                          m_War3Version;               // custom warcraft 3 version for PvPGN users
   char                             m_CommandTrigger;            // the character prefix to identify commands
   bool                             m_Exiting;                   // set to true and this class will be deleted next update
@@ -87,12 +88,13 @@ private:
   bool                             m_PvPGN;                     // if this BNET connection is actually a PvPGN
 
 public:
-  CBNET(CAura* nAura, std::string nServer, const std::string& nServerAlias, const std::string& nCDKeyROC, const std::string& nCDKeyTFT, std::string nCountryAbbrev, std::string nCountry, uint32_t nLocaleID, const std::string& nUserName, const std::string& nUserPassword, std::string nFirstChannel, char nCommandTrigger, uint8_t nWar3Version, std::vector<uint8_t> nEXEVersion, std::vector<uint8_t> nEXEVersionHash, std::string nPasswordHashType, uint32_t nHostCounterID);
+  CBNET(CAura* nAura, std::string nServer, uint32_t nServerport, const std::string& nServerAlias, const std::string& nCDKeyROC, const std::string& nCDKeyTFT, std::string nCountryAbbrev, std::string nCountry, uint32_t nLocaleID, const std::string& nUserName, const std::string& nUserPassword, std::string nFirstChannel, char nCommandTrigger, uint8_t nWar3Version, std::vector<uint8_t> nEXEVersion, std::vector<uint8_t> nEXEVersionHash, std::string nPasswordHashType, uint32_t nHostCounterID);
   ~CBNET();
   CBNET(CBNET&) = delete;
 
   inline bool                 GetExiting() const { return m_Exiting; }
   inline std::string          GetServer() const { return m_Server; }
+  inline uint32_t             GetServerport() const { return m_Serverport; }
   inline std::string          GetServerAlias() const { return m_ServerAlias; }
   inline std::string          GetCDKeyROC() const { return m_CDKeyROC; }
   inline std::string          GetCDKeyTFT() const { return m_CDKeyTFT; }
