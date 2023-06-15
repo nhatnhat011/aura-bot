@@ -9,13 +9,13 @@ on:
 jobs:
   build:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.3.1
-      with:
-        vs-version: '[14.0,14.5)'
-    - name: Build app for release
-      run: msbuild aura.sln -t:rebuild -verbosity:diag -property:Configuration=Release
+    - name: make stormlib
+      run: cd StormLib/build && cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DYNAMIC_MODULE=1 .. && make && sudo make install
+    - name: make bncsutil
+      run: cd ~/work/aura-bot/aura-bot/bncsutil/src/bncsutil/ && make && sudo make install
+    - name: make aura-bot
+      run: cd ~/work/aura-bot/aura-bot/ && make
