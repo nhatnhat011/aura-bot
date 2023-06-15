@@ -286,6 +286,7 @@ CAura::CAura(CConfig* CFG)
       Prefix = "bnet" + to_string(i) + "_";
 
     string   Server        = CFG->GetString(Prefix + "server", string());
+    uint32_t Serverport    = CFG->GetInt(Prefix + "serverport", 6112);
     string   ServerAlias   = CFG->GetString(Prefix + "serveralias", string());
     string   CDKeyROC      = CFG->GetString(Prefix + "cdkeyroc", string());
     string   CDKeyTFT      = CFG->GetString(Prefix + "cdkeytft", string());
@@ -332,7 +333,7 @@ CAura::CAura(CConfig* CFG)
     if (Locale == "system")
       Print("[AURA] using system locale of " + to_string(LocaleID));
 
-    m_BNETs.push_back(new CBNET(this, Server, ServerAlias, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, LocaleID, UserName, UserPassword, FirstChannel, BNETCommandTrigger[0], War3Version, EXEVersion, EXEVersionHash, PasswordHashType, i));
+    m_BNETs.push_back(new CBNET(this, Server, Serverport, ServerAlias, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, LocaleID, UserName, UserPassword, FirstChannel, BNETCommandTrigger[0], War3Version, EXEVersion, EXEVersionHash, PasswordHashType, i));
   }
 
   if (m_BNETs.empty())
