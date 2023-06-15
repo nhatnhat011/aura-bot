@@ -564,7 +564,7 @@ std::vector<uint8_t> CBNETProtocol::SEND_SID_AUTH_INFO(uint8_t ver, uint32_t loc
   const uint8_t PlatformID[]    = {54, 56, 88, 73}; // "IX86"
   const uint8_t ProductID_TFT[] = {80, 88, 51, 87}; // "W3XP"
   const uint8_t Version[]       = {ver, 0, 0, 0};
-  const uint8_t Language[]      = {83, 85, 110, 101}; // "enUS"
+  const uint8_t Language[]      = {82, 75, 111, 107}; // "koKR"
   const uint8_t LocalIP[]       = {127, 0, 0, 1};
   const uint8_t TimeZoneBias[]  = {60, 0, 0, 0}; // 60 minutes (GMT +0100) but this is probably -0100
 
