@@ -276,43 +276,12 @@ bool CBNET::Update(void* fd, void* send_fd)
               break;
 
             case CBNETProtocol::SID_AUTH_CHECK:
-              if (m_Protocol->RECEIVE_SID_AUTH_CHECK(Data))
-              {
+
                 // cd keys accepted
 
                 Print2("[BNET: " + m_ServerAlias + "] cd keys accepted");
                 m_BNCSUtil->HELP_SID_AUTH_ACCOUNTLOGON();
                 m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_ACCOUNTLOGON(m_BNCSUtil->GetClientKey(), m_UserName));
-              }
-              else
-              {
-                // cd keys not accepted
-
-                switch (ByteArrayToUInt32(m_Protocol->GetKeyState(), false))
-                {
-                  case CBNETProtocol::KR_ROC_KEY_IN_USE:
-                    Print2("[BNET: " + m_ServerAlias + "] logon failed - ROC CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
-                    break;
-
-                  case CBNETProtocol::KR_TFT_KEY_IN_USE:
-                    Print2("[BNET: " + m_ServerAlias + "] logon failed - TFT CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
-                    break;
-
-                  case CBNETProtocol::KR_OLD_GAME_VERSION:
-                    Print2("[BNET: " + m_ServerAlias + "] logon failed - game version is too old, disconnecting");
-                    break;
-
-                  case CBNETProtocol::KR_INVALID_VERSION:
-                    Print2("[BNET: " + m_ServerAlias + "] logon failed - game version is invalid, disconnecting");
-                    break;
-
-                  default:
-                    Print2("[BNET: " + m_ServerAlias + "] logon failed - cd keys not accepted, disconnecting");
-                    break;
-                }
-
-                m_Socket->Disconnect();
-              }
 
               break;
 
