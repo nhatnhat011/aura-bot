@@ -3777,7 +3777,7 @@ void CGame::EventPlayerMapSize(CGamePlayer* player, CIncomingMapSize* mapSize)
   {
     // the player doesn't have the map
 
-    if (Admin || m_Aura->m_AllowDownloads)
+    if (m_Aura->m_DB->RootAdminCheck(player->GetName()) || m_Aura->m_AllowDownloads)
     {
       string* MapData = m_Map->GetMapData();
 
