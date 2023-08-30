@@ -274,6 +274,15 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
         if (MapMPQReady)
         {
           HANDLE SubFile;
+          
+          //0	Neutral/English (American) | 0x404	Chinese (Taiwan)
+          //0x405	Czech	                  | 0x407	German
+          //0x409	English	               | 0x40a	Spanish
+          //0x40c	French	               | 0x410	Italian
+          //0x411	Japanese	               | 0x412	Korean
+          //0x415	Polish	               | 0x416	Portuguese
+          //0x419	Russsian	               | 0x809	English (UK) 
+          SFileSetLocale(0x412);
 
           // override common.j
 
