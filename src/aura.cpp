@@ -63,6 +63,7 @@ using namespace std;
 
 static CAura* gAura    = nullptr;
 bool          gRestart = false;
+string gCFGFile;
 
 void Print2(const string& message)
 {
@@ -82,11 +83,15 @@ void Print2(const string& message)
 // main
 //
 
-int main(const int, const char* argv[])
+int main(const int argc, const char* argv[])
 {
   // seed the PRNG
 
   srand(static_cast<uint32_t>(time(nullptr)));
+
+  gCFGFile = "aura.cfg";
+  if( argc > 1 && argv[1] )
+      gCFGFile = argv[1];
 
   // disable sync since we don't use cstdio anyway
 
@@ -95,7 +100,7 @@ int main(const int, const char* argv[])
   // read config file
 
   CConfig CFG;
-  CFG.Read("aura.cfg");
+  CFG.Read( gCFGFile );
 
   Print("[AURA] starting up");
 
@@ -681,7 +686,7 @@ void CAura::EventGameDeleted(CGame* game)
 void CAura::ReloadConfigs()
 {
   CConfig CFG;
-  CFG.Read("aura.cfg");
+  CFG.Read( gCFGFile );
   SetConfigs(&CFG);
 }
 
