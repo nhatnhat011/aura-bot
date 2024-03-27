@@ -467,10 +467,17 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
 
             ISS.read(reinterpret_cast<char*>(&FileFormat), 4); // file format (18 = ROC, 25 = TFT)
 
-            if (FileFormat == 18 || FileFormat == 25)
+            if (FileFormat == 18 || FileFormat >= 25)
             {
               ISS.seekg(4, ios::cur);            // number of saves
               ISS.seekg(4, ios::cur);            // editor version
+              if( FileFormat >= 27 )
+              {
+              ISS.seekg(4, ios::cur);           // Game version A
+              ISS.seekg(4, ios::cur);           // Game version B
+              ISS.seekg(4, ios::cur);           // Game version C
+              ISS.seekg(4, ios::cur);           // Game version D
+              }
               getline(ISS, GarbageString, '\0'); // map name
               getline(ISS, GarbageString, '\0'); // map author
               getline(ISS, GarbageString, '\0'); // map description
@@ -484,7 +491,7 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
 
               if (FileFormat == 18)
                 ISS.seekg(4, ios::cur); // campaign background number
-              else if (FileFormat == 25)
+              else if (FileFormat >= 25)
               {
                 ISS.seekg(4, ios::cur);            // loading screen background number
                 getline(ISS, GarbageString, '\0'); // path of custom loading screen model
@@ -496,7 +503,7 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
 
               if (FileFormat == 18)
                 ISS.seekg(4, ios::cur); // map loading screen number
-              else if (FileFormat == 25)
+              else if (FileFormat >= 25)
               {
                 ISS.seekg(4, ios::cur);            // used game data set
                 getline(ISS, GarbageString, '\0'); // prologue screen path
@@ -506,7 +513,7 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
               getline(ISS, GarbageString, '\0'); // prologue screen title
               getline(ISS, GarbageString, '\0'); // prologue screen subtitle
 
-              if (FileFormat == 25)
+              if (FileFormat >= 25)
               {
                 ISS.seekg(4, ios::cur);            // uses terrain fog
                 ISS.seekg(4, ios::cur);            // fog start z height
@@ -524,6 +531,12 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
                 ISS.seekg(1, ios::cur);            // custom water tinting blue value
                 ISS.seekg(1, ios::cur);            // custom water tinting alpha value
               }
+              if( FileFormat >= 28 )
+                ISS.seekg(4, ios::cur);            // Scripting language
+              if( FileFormat >= 29 ) 
+                ISS.seekg(4, ios::cur);            // Supported graphics modes
+              if( FileFormat >= 30 )
+                ISS.seekg(4, ios::cur);            // Game data version
 
               ISS.read(reinterpret_cast<char*>(&RawMapNumPlayers), 4); // number of players
               uint32_t ClosedSlots = 0;
@@ -572,6 +585,11 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
                 ISS.seekg(4, ios::cur);            // start position y
                 ISS.seekg(4, ios::cur);            // ally low priorities
                 ISS.seekg(4, ios::cur);            // ally high priorities
+        				if( FileFormat >= 31 )
+                {
+                ISS.seekg(4, ios::cur);            // Enemy low priority
+                ISS.seekg(4, ios::cur);            // Enemy high priority
+                }
 
                 if (Slot.GetSlotStatus() != SLOTSTATUS_CLOSED)
                   Slots.push_back(Slot);
