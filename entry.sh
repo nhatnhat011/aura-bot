@@ -1,4 +1,4 @@
-#!/usr/bin/env ash
+#!/bin/ash
 SCRIPT_PATH=${SCRIPT_PATH:-"/app/data/aura.cfg"}
 BOT_VIRTUAL_NAME=${BOT_VIRTUAL_NAME:-"|cFFFF0000Aura"}
 HOST_PORT=${HOST_PORT:-'6113'}
