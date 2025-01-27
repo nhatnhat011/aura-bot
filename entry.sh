@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env
 SCRIPT_PATH=${SCRIPT_PATH:-"/app/data/aura.cfg"}
 BOT_VIRTUAL_NAME=${BOT_VIRTUAL_NAME:-"|cFFFF0000Aura"}
 HOST_PORT=${HOST_PORT:-'6113'}
@@ -43,4 +43,4 @@ if ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bnet_custom_war3version'; then
 	echo "bnet_custom_war3version = $WAR_VERSION" >> "$SCRIPT_PATH"
 fi
 
-./aura++ $SCRIPT_PATH
+exec /app/aura++ $SCRIPT_PATH
