@@ -43,4 +43,4 @@ if ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bnet_custom_war3version'; then
 	echo "bnet_custom_war3version = $WAR_VERSION" >> "$SCRIPT_PATH"
 fi
 
-bash ./aura++ $SCRIPT_PATH
+./aura++ $SCRIPT_PATH
