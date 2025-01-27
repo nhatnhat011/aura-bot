@@ -2,6 +2,7 @@
 SCRIPT_PATH=${SCRIPT_PATH:-"/app/data/aura.cfg"}
 BOT_VIRTUAL_NAME=${BOT_VIRTUAL_NAME:-"|cFFFF0000Aura"}
 HOST_PORT=${HOST_PORT:-'6113'}
+RECONNECT_PORT=${RECONNECT_PORT:-'6114'}
 SERVER=${SERVER:-"server.eurobattle.net"}
 SERVER_PORT=${SERVER_PORT:-'6112'}
 SERVER_ALIAS=${SERVER_ALIAS:-"EuroBattle"}
@@ -31,6 +32,9 @@ if ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bot_virtualhostname'; then
 fi
 if ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bot_hostport'; then
 	echo "bot_hostport = $HOST_PORT" >> "$SCRIPT_PATH"
+fi
+if ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bot_reconnectport'; then
+	echo "bot_reconnectport = $RECONNECT_PORT" >> "$SCRIPT_PATH"
 fi
 if ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bnet_server'; then
 	echo "bnet_server = $SERVER" >> "$SCRIPT_PATH"
