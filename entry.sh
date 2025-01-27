@@ -14,6 +14,18 @@ if [ ! -e "$SCRIPT_PATH" ]; then
 	cp "/app/aura_example.cfg" "$SCRIPT_PATH"
 fi
 
+if [ ! -d "/app/data/wc3" ]; then
+	cp -r "/app/wc3" "/app/data/wc3"
+fi
+
+if [ ! -d "/app/data/mapcfgs" ]; then
+	cp -r "/app/mapcfgs" "/app/data/mapcfgs"
+fi
+
+if [ ! -d "/app/data/maps" ]; then
+	mkdir "/app/data/maps"
+fi
+
 if ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bot_virtualhostname'; then
 	echo "bot_virtualhostname = $BOT_VIRTUAL_NAME" >> "$SCRIPT_PATH"
 fi
