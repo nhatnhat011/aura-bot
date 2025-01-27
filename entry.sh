@@ -11,8 +11,7 @@ ROOT_ADMINS=${ROOT_ADMINS:-"W3_Beta"}
 WAR_VERSION=${WAR_VERSION:-'28'}
 
 if [ ! -e "$SCRIPT_PATH" ]; then
-	cp "/app/aura_example.cfg" "/app/data/aura.cfg"
-	SCRIPT_PATH="/app/data/aura.cfg"
+	cp "/app/aura_example.cfg" "$SCRIPT_PATH"
 fi
 
 if ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bot_virtualhostname'; then
