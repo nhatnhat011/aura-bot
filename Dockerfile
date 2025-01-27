@@ -8,7 +8,7 @@ RUN apk add git build-base gmp-dev m4 bzip2-dev zlib-dev cmake &&\
 	chmod +x entry.sh
 FROM alpine:latest
 COPY --from=build /aura-bot/StormLib/build/libstorm.a /aura-bot/bncsutil/src/bncsutil/libbncsutil.so /usr/lib
-COPY --from=build /aura-bot/aura++ /aura-bot/ip-to-country.csv /aura-bot/aura_example.cfg /aura-bot/entry.sh /app/
+COPY --from=build /aura-bot/aura++ /aura-bot/ip-to-country.csv /aura-bot/aura_example.cfg /aura-bot/entry.sh /aura-bot/wc3 /aura-bot/mapcfgs /app/
 RUN apk add libbz2 gmp libstdc++ python3 py3-pip &&\
     pip install gdown --break-system-packages
 WORKDIR /app
