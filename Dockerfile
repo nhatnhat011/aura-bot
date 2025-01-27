@@ -5,7 +5,7 @@ RUN apk add git build-base gmp-dev m4 bzip2-dev zlib-dev cmake &&\
     cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DYNAMIC_MODULE=1 .. && make && make install &&\
     cd /aura-bot/bncsutil/src/bncsutil/ && make &&\
     cd /aura-bot/ && make &&\
-	chmod +x entry.sh
+    chmod +x entry.sh
 FROM alpine:latest
 COPY --from=build /aura-bot/StormLib/build/libstorm.a /aura-bot/bncsutil/src/bncsutil/libbncsutil.so /usr/lib
 COPY --from=build /aura-bot/aura++ /aura-bot/ip-to-country.csv /aura-bot/aura_example.cfg /aura-bot/entry.sh /aura-bot/wc3 /aura-bot/mapcfgs /app/
