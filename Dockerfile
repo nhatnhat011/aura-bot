@@ -1,4 +1,4 @@
-FROM alpine:3.13.1 as build
+FROM alpine:3.13.1 AS build
 RUN apk add git build-base gmp-dev m4 bzip2-dev zlib-dev cmake &&\
     git clone https://github.com/nhatnhat011/aura-bot.git &&\
     mkdir aura-bot/StormLib/build && cd aura-bot/StormLib/build &&\
