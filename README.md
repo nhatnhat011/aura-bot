@@ -46,7 +46,37 @@ Other changes:
 * Auto spoofcheck in private games on PvPGNs
 * More commands added either ingame or bnet
 * Checked with various tools such as clang-analyzer and cppcheck
-
+  
+DOCKER COMPOSE
+--------------
+```
+services:
+  aura-bot:
+    image: nhatnhat011/aura-bot:latest
+    container_name: aura-bot
+    environment:
+      #- SCRIPT_PATH= # (Option) Default: /app/data/aura.cfg
+      #- BOT_VIRTUAL_NAME= # (Option) Default: |cFFFF0000Aura
+      #- HOST_PORT= # (Option) Default: 6113
+      #- RECONNECT_PORT= # (Option) Default: 6114
+      - SERVER=server.eurobattle.net # Required to run. Default: server.eurobattle.net
+      #- SERVER_PORT= # (Option) Default port 6112
+      #- SERVER_ALIAS= # (Option) Default EuroBattle
+      - BOT_USER_NAME= # Required to run
+      - BOT_PASSWORD= # Required to run
+      - ROOT_ADMINS= # Required to control bots
+      #- WAR_VERSION= # (Option) Default: 28
+    volumes:
+      - ./aura-bot:/app/data
+    ports:
+      - 6113:6113
+      - 6114:6114
+    restart: on-failure:5
+    logging:
+      options:
+        max-size: "5m"
+        max-file: "2"
+```
 Multi-platform
 --------------
 
