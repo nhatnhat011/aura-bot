@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/bin/sh
 SCRIPT_PATH=${SCRIPT_PATH:-"/app/data/aura.cfg"}
 BOT_VIRTUAL_NAME=${BOT_VIRTUAL_NAME:-"|cFFFF0000Aura"}
 HOST_PORT=${HOST_PORT:-'6113'}
@@ -10,7 +10,6 @@ BOT_USER_NAME=${BOT_USER_NAME:-"aura"}
 BOT_PASSWORD=${BOT_PASSWORD:-"aura"}
 ROOT_ADMINS=${ROOT_ADMINS:-"W3_Beta"}
 WAR_VERSION=${WAR_VERSION:-'28'}
-
 if [ ! -e "$SCRIPT_PATH" ]; then
 	cp "/app/aura_example.cfg" "$SCRIPT_PATH"
 fi
@@ -54,8 +53,7 @@ fi
 if ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bnet_rootadmins'; then
 	echo "bnet_rootadmins = $ROOT_ADMINS" >> "$SCRIPT_PATH"
 fi
-if ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bnet_custom_war3version'; then
+if [ ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bnet_custom_war3version' ]; then
 	echo "bnet_custom_war3version = $WAR_VERSION" >> "$SCRIPT_PATH"
 fi
-
-./aura++ $SCRIPT_PATH
+/app/aura++ $SCRIPT_PATH
