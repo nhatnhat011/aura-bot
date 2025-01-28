@@ -53,7 +53,7 @@ fi
 if ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bnet_rootadmins'; then
 	echo "bnet_rootadmins = $ROOT_ADMINS" >> "$SCRIPT_PATH"
 fi
-if [ ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bnet_custom_war3version' ]; then
+if ! cat "$SCRIPT_PATH" 2>/dev/null | grep -q 'bnet_custom_war3version'; then
 	echo "bnet_custom_war3version = $WAR_VERSION" >> "$SCRIPT_PATH"
 fi
 /app/aura++ $SCRIPT_PATH
