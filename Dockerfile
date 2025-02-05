@@ -1,5 +1,5 @@
 FROM alpine:3.13.1 AS build
-ADD https://github.com/ladislav-zezula/StormLib/archive/refs/tags/v9.30.tar.gz /src/stormlib.tar.gz
+ADD https://github.com/ladislav-zezula/StormLib/archive/refs/tags/v9.30.tar.gz stormlib.tar.gz
 COPY . /aura-bot
 RUN apk add build-base gmp-dev m4 bzip2-dev zlib-dev cmake && tar -xvf stormlib.tar.gz &&\
     mkdir aura-bot/StormLib/build && cd aura-bot/StormLib/build &&\
