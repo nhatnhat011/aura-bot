@@ -20,15 +20,15 @@ jobs:
         with:
           driver-opts: network=host
       
-      - name: Build and export image
+      - name: Build and export image arm
         run: |
           docker build . -t nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-arm
           mkdir -p path/to/artifacts
           docker save nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-arm > path/to/artifacts/${{ github.event.inputs.typetag }}-arm-image.tar
-      - name: Temporarily save Docker image
+      - name: Temporarily save Docker image arm
         uses: actions/upload-artifact@v4
         with:
-          name: docker-artifact
+          name: docker-artifact-arm
           path: path/to/artifacts
           retention-days: 1
 
@@ -41,15 +41,15 @@ jobs:
         with:
           driver-opts: network=host
       
-      - name: Build and export image
+      - name: Build and export image amd
         run: |
           docker build . -t nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-amd
           mkdir -p path/to/artifacts
           docker save nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-amd > path/to/artifacts/${{ github.event.inputs.typetag }}-amd-image.tar
-      - name: Temporarily save Docker image
+      - name: Temporarily save Docker image amd
         uses: actions/upload-artifact@v4
         with:
-          name: docker-artifact
+          name: docker-artifact-amd
           path: path/to/artifacts
           retention-days: 1
 
