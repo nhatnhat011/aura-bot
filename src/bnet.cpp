@@ -1052,53 +1052,47 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
 
             if ((m_Aura->m_ListMapCFG).find(Payload))
             {
-              switch (Payload)
+              if (Payload == "rf" || Payload == "reforged" || Payload == "Reforged")
               {
-                case "rf":
-                case "reforged":
-                case "Reforged":
+                if (FileExists("data/mapcfgs/rf/blizzard.j"))
                 {
-                  if (FileExists("data/mapcfgs/rf/blizzard.j"))
-                  {
-                    m_Aura->m_LANWar3Version = 100;
-                    m_Aura->m_MapCFGPath = "/data/mapcfgs/rf/";
-                    QueueChatCommand("Map config for warcraft version set to: Reforged", User, Whisper, m_IRC);
-                  }
-                  else
-                    QueueChatCommand("No config file exists for this version: Reforged", User, Whisper, m_IRC);
-                  break;
+                  m_Aura->m_LANWar3Version = 100;
+                  m_Aura->m_MapCFGPath = "/data/mapcfgs/rf/";
+                  QueueChatCommand("Map config for warcraft version set to: Reforged", User, Whisper, m_IRC);
                 }
-                case "w3ce":
+                else
+                  QueueChatCommand("No config file exists for this version: Reforged", User, Whisper, m_IRC);
+                break;
+              }
+              else if (Payload == "w3ce")
+              {
+                if (FileExists("data/mapcfgs/w3ce/blizzard.j"))
                 {
-                  if (FileExists("data/mapcfgs/w3ce/blizzard.j"))
-                  {
-                    m_Aura->m_LANWar3Version = 29;
-                    m_Aura->m_MapCFGPath = "/data/mapcfgs/w3ce/";
-                    QueueChatCommand("Map config for warcraft version set to: W3 Community", User, Whisper, m_IRC);
-                  }
-                  else
-                    QueueChatCommand("No config file exists for this version: W3 Community", User, Whisper, m_IRC);
-                  break;
+                  m_Aura->m_LANWar3Version = 29;
+                  m_Aura->m_MapCFGPath = "/data/mapcfgs/w3ce/";
+                  QueueChatCommand("Map config for warcraft version set to: W3 Community", User, Whisper, m_IRC);
                 }
-                default:
+                else
+                  QueueChatCommand("No config file exists for this version: W3 Community", User, Whisper, m_IRC);
+                break;
+              }
+              else
+              {
+                const uint32_t warver = stoul(Payload);
+                if ((warver >= 24 && warver <= 28) || FileExists("data/mapcfgs/" + to_string(warver) + "/blizzard.j"))
                 {
-                  const uint32_t warver = stoul(Payload);
-                  if (warver >= 0 && FileExists("data/mapcfgs/" + to_string(warver) + "/blizzard.j"))
-                  {
-                    m_Aura->m_LANWar3Version = warver;
-                    if (warver >= 24 && warver <= 28)
-                      m_Aura->m_MapCFGPath = "/data/mapcfgs/";
-                    else
-                      m_Aura->m_MapCFGPath = "/data/mapcfgs/" +  to_string(warver) + "/";
-                    QueueChatCommand("Map config for warcraft version set to: " + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
-                  }
+                  m_Aura->m_LANWar3Version = warver;
+                  if (warver >= 24 && warver <= 28)
+                    m_Aura->m_MapCFGPath = "/data/mapcfgs/";
                   else
-                    QueueChatCommand("Version invalid", User, Whisper, m_IRC);
-                  break;
+                    m_Aura->m_MapCFGPath = "/data/mapcfgs/" +  to_string(warver) + "/";
+                  QueueChatCommand("Map config for warcraft version set to: " + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
                 }
+                else
+                  QueueChatCommand("No config file exists for this version", User, Whisper, m_IRC);
+                break;
               }
             }
-            break;
           }
 
 
