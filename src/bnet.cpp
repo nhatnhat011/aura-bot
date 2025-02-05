@@ -1095,7 +1095,6 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
             }
           }
 
-
           case HashCode("setmapcfg"):
           {
             if (!IsRootAdmin(User))
