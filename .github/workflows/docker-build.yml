@@ -11,11 +11,6 @@ on:
 jobs:
   build-arm64:
     runs-on: ubuntu-24.04-arm
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
     steps:
     #  - name: Set up QEMU
     #    uses: docker/setup-qemu-action@v3
@@ -25,20 +20,20 @@ jobs:
         with:
           driver-opts: network=host
       
-      - name: Build and push to local registry
-        uses: docker/build-push-action@v6
+      - name: Build and export image
+        run: |
+          docker build . -t nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-arm
+          mkdir -p path/to/artifacts
+          docker save nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-arm > path/to/artifacts/${{ github.event.inputs.typetag }}-arm-image.tar
+      - name: Temporarily save Docker image
+        uses: actions/upload-artifact@v4
         with:
-          push: true
-          platforms: linux/arm64
-          tags: localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-arm64
+          name: docker-artifact
+          path: path/to/artifacts
+          retention-days: 1
 
   build-amd64:
     runs-on: ubuntu-latest
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
     steps:
       - uses: actions/checkout@v3
       - name: Set up Docker Buildx
@@ -46,20 +41,21 @@ jobs:
         with:
           driver-opts: network=host
       
-      - name: Build and push to local registry
-        uses: docker/build-push-action@v6
+      - name: Build and export image
+        run: |
+          docker build . -t nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-amd
+          mkdir -p path/to/artifacts
+          docker save nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-amd > path/to/artifacts/${{ github.event.inputs.typetag }}-amd-image.tar
+      - name: Temporarily save Docker image
+        uses: actions/upload-artifact@v4
         with:
-          push: true
-          platforms: linux/amd64
-          tags: localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-amd64
+          name: docker-artifact
+          path: path/to/artifacts
+          retention-days: 1
+
   create-manifests:
     runs-on: ubuntu-latest
     needs: [build-amd64, build-arm64]
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
     steps:
       - uses: actions/checkout@v3
       - name: Login to Docker Hub
@@ -67,10 +63,23 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+  
+      - name: Retrieve saved Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-artifact
+          path: path/to/artifacts
+
+      - name: Docker load
+        run: |
+          cd path/to/artifacts
+          docker load < ${{ github.event.inputs.typetag }}-amd-image.tar
+          docker load < ${{ github.event.inputs.typetag }}-arm-image.tar
+
       - name: Create SHA manifest and push
         run: |
           docker manifest create \
             nhatnhat011/aura-bot:${{ github.event.inputs.typetag }} \
-            --amend localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-arm64 \
-            --amend localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-amd64
+            --amend nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-arm \
+            --amend nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-amd
           docker manifest push nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
