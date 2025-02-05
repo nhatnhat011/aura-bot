@@ -1,9 +1,8 @@
 FROM alpine:3.13.1 AS build
-ADD https://github.com/ladislav-zezula/StormLib/archive/refs/tags/v9.30.tar.gz stormlib.tar.gz
 COPY . /aura-bot
+ADD https://github.com/ladislav-zezula/StormLib/archive/refs/tags/v9.30.tar.gz /aura-bot/stormlib.tar.gz
 RUN apk add build-base gmp-dev m4 bzip2-dev zlib-dev cmake && tar -xvf stormlib.tar.gz &&\
-    mkdir aura-bot/StormLib/build && cd aura-bot/StormLib/build &&\
-    cd StormLib-9.30 && cmake CMakeLists.txt && make && make install &&\
+    cd /aura-bot/StormLib-9.30 && cmake CMakeLists.txt && make && make install &&\
     cd /aura-bot/bncsutil/src/bncsutil/ && make &&\
     cd /aura-bot/ && make &&\
     chmod +x entry.sh
