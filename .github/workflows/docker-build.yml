@@ -58,11 +58,11 @@ jobs:
     needs: [build-amd64, build-arm64]
     steps:
       - uses: actions/checkout@v3
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+     # - name: Login to Docker Hub
+     #   uses: docker/login-action@v3
+     #   with:
+     #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+     #     password: ${{ secrets.DOCKERHUB_TOKEN }}
   
       - name: Retrieve saved Docker image amd
         uses: actions/download-artifact@v4
@@ -82,6 +82,7 @@ jobs:
 
       - name: Create SHA manifest and push
         run: |
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }} docker.io
           docker manifest create \
             nhatnhat011/aura-bot:${{ github.event.inputs.typetag }} \
             --amend aura-bot:${{ github.event.inputs.typetag }}-arm \
