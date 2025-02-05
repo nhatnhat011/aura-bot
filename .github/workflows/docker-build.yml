@@ -22,7 +22,7 @@ jobs:
       
       - name: Build and export image arm
         run: |
-          docker build . -t aura-bot:${{ github.event.inputs.typetag }}-arm
+          docker build . -t localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-arm
           mkdir -p path/to/artifacts
           docker save localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-arm > path/to/artifacts/${{ github.event.inputs.typetag }}-arm-image.tar
       - name: Temporarily save Docker image arm
@@ -43,7 +43,7 @@ jobs:
       
       - name: Build and export image amd
         run: |
-          docker build . -t aura-bot:${{ github.event.inputs.typetag }}-amd
+          docker build . -t localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-amd
           mkdir -p path/to/artifacts
           docker save localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-amd > path/to/artifacts/${{ github.event.inputs.typetag }}-amd-image.tar
       - name: Temporarily save Docker image amd
