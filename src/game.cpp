@@ -1573,7 +1573,7 @@ void CGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* chat
 
       // calculate timestamp
 
-	  if (m_MuteAll || m_MuteLobby && !(chatPlayer->GetMessage()[0] == m_Aura->m_CommandTrigger || chatPlayer->GetMessage()[0] == '/'))
+      if ((m_MuteAll || m_MuteLobby) && !(chatPlayer->GetMessage()[0] == m_Aura->m_CommandTrigger || chatPlayer->GetMessage()[0] == '/'))
         Relay = false;
       else
         Relay = true;
