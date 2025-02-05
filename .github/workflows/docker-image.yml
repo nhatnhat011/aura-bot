@@ -3,10 +3,10 @@ name: Docker Image CI
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Target environment'
+      typetag:
+        description: 'Type a tag to run'
         required: true
-        default: 'development'
+        default: 'integration'
 
 jobs:
 
@@ -17,4 +17,4 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag nhatnhat011/aura-bot:$(date +%s)
+      run: docker build . --file Dockerfile --tag nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
