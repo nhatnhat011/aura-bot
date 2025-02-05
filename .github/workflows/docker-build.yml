@@ -88,8 +88,8 @@ jobs:
         run: |
           docker buildx imagetools create \
             -t nhatnhat011/aura-bot:${{ github.event.inputs.typetag }} \
-            -f aura-bot:${{ github.event.inputs.typetag }}-arm \
-            -f aura-bot:${{ github.event.inputs.typetag }}-amd
+            aura-bot:${{ github.event.inputs.typetag }}-arm \
+            aura-bot:${{ github.event.inputs.typetag }}-amd
       - name: Push
         run: docker push nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
   # docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }} docker.io
