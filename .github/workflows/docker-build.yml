@@ -24,7 +24,7 @@ jobs:
         run: |
           docker build . -t aura-bot:${{ github.event.inputs.typetag }}-arm
           mkdir -p path/to/artifacts
-          docker save aura-bot:${{ github.event.inputs.typetag }}-arm > path/to/artifacts/${{ github.event.inputs.typetag }}-arm-image.tar
+          docker save localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-arm > path/to/artifacts/${{ github.event.inputs.typetag }}-arm-image.tar
       - name: Temporarily save Docker image arm
         uses: actions/upload-artifact@v4
         with:
@@ -45,7 +45,7 @@ jobs:
         run: |
           docker build . -t aura-bot:${{ github.event.inputs.typetag }}-amd
           mkdir -p path/to/artifacts
-          docker save aura-bot:${{ github.event.inputs.typetag }}-amd > path/to/artifacts/${{ github.event.inputs.typetag }}-amd-image.tar
+          docker save localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-amd > path/to/artifacts/${{ github.event.inputs.typetag }}-amd-image.tar
       - name: Temporarily save Docker image amd
         uses: actions/upload-artifact@v4
         with:
@@ -56,6 +56,11 @@ jobs:
   create-manifests:
     runs-on: ubuntu-latest
     needs: [build-amd64, build-arm64]
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - uses: actions/checkout@v3
       - name: Set up Docker Buildx
@@ -83,13 +88,15 @@ jobs:
           cd path/to/artifacts
           docker load < ${{ github.event.inputs.typetag }}-amd-image.tar
           docker load < ${{ github.event.inputs.typetag }}-arm-image.tar
+          docker push localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-amd-image.tar
+          docker push localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-arm-image.tar
 
       - name: Create SHA manifest
         run: |
           docker buildx imagetools create \
             -t nhatnhat011/aura-bot:${{ github.event.inputs.typetag }} \
-            aura-bot:${{ github.event.inputs.typetag }}-arm \
-            aura-bot:${{ github.event.inputs.typetag }}-amd
+            localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-arm \
+            localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-amd
       - name: Push
         run: docker push nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
   # docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }} docker.io
