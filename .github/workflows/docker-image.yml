@@ -10,11 +10,36 @@ on:
 
 jobs:
 
-  build:
+  #build:
 
+   # runs-on: ubuntu-latest
+
+  #  steps:
+  #  - uses: actions/checkout@v4
+   # - name: Build the Docker image
+   #   run: docker build . --file Dockerfile --tag nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
+  docker:
     runs-on: ubuntu-latest
-
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
+    #  - name: Set up QEMU
+    #    uses: docker/setup-qemu-action@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
+      
+      - name: Build and push to local registry
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
+      
+      - name: Inspect
+        run: |
+          docker buildx imagetools inspect localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
