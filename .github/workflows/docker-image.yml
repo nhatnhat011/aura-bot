@@ -1,4 +1,4 @@
-name: Docker Image CI
+đểname: Docker Image CI
 
 on:
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          platform: linux/arm64
+          platforms: linux/arm64
           tags: localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
       
       - name: Inspect
