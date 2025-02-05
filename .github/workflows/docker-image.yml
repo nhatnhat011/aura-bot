@@ -1,4 +1,4 @@
-đểname: Docker Image CI
+name: Docker-build-push
 
 on:
   workflow_dispatch:
@@ -9,16 +9,7 @@ on:
         default: 'dev'
 
 jobs:
-
-  #build:
-
-   # runs-on: ubuntu-latest
-
-  #  steps:
-  #  - uses: actions/checkout@v4
-   # - name: Build the Docker image
-   #   run: docker build . --file Dockerfile --tag nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
-  docker:
+  build-arm64:
     runs-on: ubuntu-24.04-arm
     services:
       registry:
@@ -39,8 +30,31 @@ jobs:
         with:
           push: true
           platforms: linux/arm64
-          tags: localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
+          tags: localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-arm64
+
+  build-amd64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
       
-      - name: Inspect
+      - name: Build and push to local registry
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          platforms: linux/arm64
+          tags: localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-amd64
+      - name: Create SHA manifest and push
         run: |
-          docker buildx imagetools inspect localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
+          docker manifest create \
+            nhatnhat011/aura-bot:${{ github.event.inputs.typetag }} \
+            --amend localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-arm64 \
+            --amend localhost:5000/nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}-amd64
+          docker manifest push nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
