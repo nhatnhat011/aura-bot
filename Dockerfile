@@ -3,7 +3,7 @@ ADD https://github.com/ladislav-zezula/StormLib/archive/refs/tags/v9.30.tar.gz s
 COPY . /aura-bot
 RUN apk add build-base gmp-dev m4 bzip2-dev zlib-dev cmake && tar -xvf stormlib.tar.gz &&\
     mkdir aura-bot/StormLib/build && cd aura-bot/StormLib/build &&\
-    cd StormLib-9.25 && cmake CMakeLists.txt && make && make install &&\
+    cd StormLib-9.30 && cmake CMakeLists.txt && make && make install &&\
     cd /aura-bot/bncsutil/src/bncsutil/ && make &&\
     cd /aura-bot/ && make &&\
     chmod +x entry.sh
