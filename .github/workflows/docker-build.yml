@@ -64,12 +64,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
   
-      - name: Retrieve saved Docker image
+      - name: Retrieve saved Docker image amd
         uses: actions/download-artifact@v4
         with:
-          name: docker-artifact
+          name: docker-artifact-amd
           path: path/to/artifacts
-
+      - name: Retrieve saved Docker image arm
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-artifact-arm
+          path: path/to/artifacts
       - name: Docker load
         run: |
           cd path/to/artifacts
