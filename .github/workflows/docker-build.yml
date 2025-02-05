@@ -88,8 +88,8 @@ jobs:
           cd path/to/artifacts
           docker load < ${{ github.event.inputs.typetag }}-amd-image.tar
           docker load < ${{ github.event.inputs.typetag }}-arm-image.tar
-          docker push localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-amd-image.tar
-          docker push localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-arm-image.tar
+          docker push localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-amd
+          docker push localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-arm
 
       - name: Create SHA manifest
         run: |
