@@ -91,12 +91,9 @@ jobs:
           docker push localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-amd
           docker push localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-arm
 
-      - name: Create SHA manifest
+      - name: Create SHA manifest and push
         run: |
           docker buildx imagetools create \
             -t nhatnhat011/aura-bot:${{ github.event.inputs.typetag }} \
             localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-arm \
             localhost:5000/local/aura-bot:${{ github.event.inputs.typetag }}-amd
-      - name: Push
-        run: docker push nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
-  # docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }} docker.io
