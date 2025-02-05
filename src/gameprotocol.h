@@ -100,9 +100,11 @@ public:
     W3GS_STARTDOWNLOAD      = 63, // 0x3F
     W3GS_MAPSIZE            = 66, // 0x42
     W3GS_MAPPART            = 67, // 0x43
+    W3GS_MAPPARTOK			= 68, // 0x44 // test 2/2/2025
     W3GS_MAPPARTNOTOK       = 69, // 0x45 - just a guess, received this packet after forgetting to send a crc in W3GS_MAPPART (f7 45 0a 00 01 02 01 00 00 00)
     W3GS_PONG_TO_HOST       = 70, // 0x46
-    W3GS_INCOMING_ACTION2   = 72  // 0x48 - received this packet when there are too many actions to fit in W3GS_INCOMING_ACTION
+    W3GS_INCOMING_ACTION2   = 72, // 0x48 - received this packet when there are too many actions to fit in W3GS_INCOMING_ACTION
+    W3GS_REFORGED_UNKNOWN   = 89  // 0x59 // test 2/2/2025
   };
 
   explicit CGameProtocol(CAura* nAura);
@@ -117,6 +119,7 @@ public:
   uint32_t RECEIVE_W3GS_OUTGOING_KEEPALIVE(const std::vector<uint8_t>& data);
   CIncomingChatPlayer* RECEIVE_W3GS_CHAT_TO_HOST(const std::vector<uint8_t>& data);
   CIncomingMapSize* RECEIVE_W3GS_MAPSIZE(const std::vector<uint8_t>& data);
+  uint32_t RECEIVE_W3GS_MAPPARTOK(const std::vector<uint8_t>& data );     // test 2/2/2025
   uint32_t RECEIVE_W3GS_PONG_TO_HOST(const std::vector<uint8_t>& data);
 
   // send functions

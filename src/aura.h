@@ -65,6 +65,7 @@ public:
   std::string              m_Warcraft3Path;              // config value: Warcraft 3 path
   std::string              m_BindAddress;                // config value: the address to host games on
   std::string              m_DefaultMap;                 // config value: default map (map.cfg)
+  std::string              m_ListMapCFG;                 // config value: default map (map.cfg)
   uint32_t                 m_ReconnectWaitTime;          // config value: the maximum number of minutes to wait for a GProxy++ reliable reconnect
   uint32_t                 m_MaxGames;                   // config value: maximum number of games in progress
   uint32_t                 m_HostCounter;                // the current host counter (a unique number to identify a game, incremented each time a game is created)
@@ -81,6 +82,8 @@ public:
   uint16_t                 m_ReconnectPort;              // config value: the port to listen for GProxy++ reliable reconnects on
   uint8_t                  m_LANWar3Version;             // config value: LAN warcraft 3 version
   int32_t                  m_CommandTrigger;             // config value: the command trigger inside games
+//  bool                     m_LANBonjour;                 // config value: LAN warcraft 3 support bonjour version
+  bool                     m_War3Reforged;               // config value: LAN warcraft 3 Reforged version 
   bool                     m_Exiting;                    // set to true to force aura to shutdown next update (used by SignalCatcher)
   bool                     m_Enabled;                    // set to false to prevent new games from being created
   bool                     m_AutoLock;                   // config value: auto lock games when the owner is present

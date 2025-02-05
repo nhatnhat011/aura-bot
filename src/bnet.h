@@ -55,6 +55,7 @@ private:
   std::vector<uint8_t>             m_EXEVersion;                // custom exe version for PvPGN users
   std::vector<uint8_t>             m_EXEVersionHash;            // custom exe version hash for PvPGN users
   std::string                      m_Server;                    // battle.net server to connect to
+  uint32_t                         m_Serverport;                // server port
   std::string                      m_ServerIP;                  // battle.net server to connect to (the IP address so we don't have to resolve it every time we connect)
   std::string                      m_ServerAlias;               // battle.net server alias (short name, e.g. "USEast")
   std::string                      m_CDKeyROC;                  // ROC CD key
@@ -77,7 +78,6 @@ private:
   uint32_t                         m_LastOutPacketSize;         // byte size of the last packet we sent from the m_OutPackets queue
   uint32_t                         m_LocaleID;                  // see: http://msdn.microsoft.com/en-us/library/0h88fahh%28VS.85%29.aspx
   uint32_t                         m_HostCounterID;             // the host counter ID to identify players from this realm
-  uint32_t                         m_Serverport;                // server port
   uint8_t                          m_War3Version;               // custom warcraft 3 version for PvPGN users
   char                             m_CommandTrigger;            // the character prefix to identify commands
   bool                             m_Exiting;                   // set to true and this class will be deleted next update

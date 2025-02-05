@@ -345,7 +345,10 @@ bool CGamePlayer::Update(void* fd)
 
             m_Game->EventPlayerPongToHost(this);
             break;
-        }
+          case CGameProtocol::W3GS_REFORGED_UNKNOWN:  //  TEST 2/2/2025
+			m_Game->SendAll(Data);
+			break;
+		}
 
         LengthProcessed += Length;
         Bytes = std::vector<uint8_t>(begin(Bytes) + Length, end(Bytes));

@@ -102,6 +102,7 @@ public:
 
 private:
   std::vector<uint8_t>   m_MapSHA1;   // config value: map sha1 (20 bytes)
+  std::vector<uint8_t>   m_MapHash;   // config value: archive sha1 (20 bytes)
   std::vector<uint8_t>   m_MapSize;   // config value: map size (4 bytes)
   std::vector<uint8_t>   m_MapInfo;   // config value: map info (4 bytes) -> this is the real CRC
   std::vector<uint8_t>   m_MapCRC;    // config value: map crc (4 bytes) -> this is not the real CRC, it's the "xoro" value
@@ -138,6 +139,7 @@ public:
   inline std::vector<uint8_t>   GetMapInfo() const { return m_MapInfo; }
   inline std::vector<uint8_t>   GetMapCRC() const { return m_MapCRC; }
   inline std::vector<uint8_t>   GetMapSHA1() const { return m_MapSHA1; }
+  inline std::vector<uint8_t>   GetMapHash() const { return m_MapHash; }
   inline uint8_t                GetMapSpeed() const { return m_MapSpeed; }
   inline uint8_t                GetMapVisibility() const { return m_MapVisibility; }
   inline uint8_t                GetMapObservers() const { return m_MapObservers; }
@@ -159,6 +161,7 @@ public:
   void Load(CConfig* CFG, const std::string& nCFGFile);
   const char* CheckValid();
   uint32_t XORRotateLeft(uint8_t* data, uint32_t length);
+  uint32_t ChunkedChecksum(uint8_t* data, int32_t length, uint32_t checksum);
 };
 
 #endif // AURA_MAP_H_

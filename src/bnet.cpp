@@ -1036,6 +1036,154 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
             break;
           }
 
+		  case HashCode("mapcfg"):
+          {
+            if (Payload.empty())
+            {
+              if (m_Aura->m_MapCFGPath == "/data/mapcfgs/rf/")
+                QueueChatCommand("Map config for warcraft version: Reforged" + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
+              else if (m_Aura->m_MapCFGPath == "/data/mapcfgs/w3ce/")
+                QueueChatCommand("Map config for warcraft version: W3 Community" + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
+              else
+                QueueChatCommand("Map config for warcraft version: " + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
+              QueueChatCommand("List config: " + m_Aura->m_ListMapCFG, User, Whisper, m_IRC);
+              break;
+            }
+
+            if (m_Aura->m_ListMapCFG.find(Payload))
+            {
+              switch (Payload)
+              {
+                case "rf":
+                case "reforged":
+                case "Reforged":
+                {
+				  if (FileExists("data/mapcfgs/rf/blizzard.j")
+				  {
+                    m_Aura->m_LANWar3Version = 100;
+                    m_Aura->m_MapCFGPath = "/data/mapcfgs/rf/";
+                    QueueChatCommand("Map config for warcraft version set to: Reforged", User, Whisper, m_IRC);
+				  }
+				  else
+				    QueueChatCommand("No config file exists for this version: Reforged", User, Whisper, m_IRC);
+				  break;
+                }
+                case "w3ce":
+                {
+				  if (FileExists("data/mapcfgs/w3ce/blizzard.j")
+				  {
+                    m_Aura->m_LANWar3Version = 29;
+                    m_Aura->m_MapCFGPath = "/data/mapcfgs/w3ce/";
+                    QueueChatCommand("Map config for warcraft version set to: W3 Community", User, Whisper, m_IRC);
+				  }
+				  else
+				    QueueChatCommand("No config file exists for this version: W3 Community", User, Whisper, m_IRC);
+				  break;
+                }
+                default:
+                {
+                  const uint32_t warver >=0) = stoul(Payload);
+                  if (warver >= 0 && FileExists("data/mapcfgs/" + to_string(warver) + "/blizzard.j"))
+                  {
+                    m_Aura->m_LANWar3Version = warver;
+                    if (warver >= 24 && warver <= 28)
+                      m_Aura->m_MapCFGPath = "/data/mapcfgs/";
+                    else
+                      m_Aura->m_MapCFGPath = "/data/mapcfgs/" +  to_string(warver) + "/";
+                    QueueChatCommand("Map config for warcraft version set to: " + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
+                  }
+				  else
+                    QueueChatCommand("Version invalid", User, Whisper, m_IRC);
+                  break;
+                }
+              }
+            }
+			break;
+          }
+
+
+		  case HashCode("setmapcfg"):
+          {
+            if (!IsRootAdmin(User))
+            {
+              QueueChatCommand("You don't have access to that command", User, Whisper, m_IRC);
+              break;
+            }
+            if (Payload.empty())
+            {
+              QueueChatCommand("Mapcfg path:" + m_Aura->m_MapCFGPath, User, Whisper, m_IRC);
+              break;
+            }
+
+            m_Aura->m_MapCFGPath = "/data/" + Payload + "/";
+            QueueChatCommand("Mapcfg path:" + m_Aura->m_MapCFGPath, User, Whisper, m_IRC);
+			break;
+          }
+
+		  case HashCode("setw3ver"):
+          {
+            if (!IsRootAdmin(User))
+            {
+              QueueChatCommand("You don't have access to that command", User, Whisper, m_IRC);
+              break;
+            }
+            if (Payload.empty())
+            {
+              QueueChatCommand("LAN Warcraft version [" + to_string(m_Aura->m_LANWar3Version) + "]", User, Whisper, m_IRC);
+              break;
+            }
+
+            try
+            {
+              const uint32_t lanver = stoul(Payload);
+
+              if (lanver >= 1)
+              {
+                m_Aura->m_LANWar3Version = lanver;
+                QueueChatCommand("LAN Warcraft version set to [" + to_string(m_Aura->m_LANWar3Version) + "]", User, Whisper, m_IRC);
+              }
+            }
+            catch (...)
+            {
+              // do nothing
+            }
+			break;
+          }
+
+/*		  case HashCode("bonjour"):
+          {
+            if (Payload.empty())
+            {
+              if (m_Aura->m_LANBonjour == 0)
+                QueueChatCommand("LAN Bonjour disabled", User, Whisper, m_IRC);
+              else if (m_Aura->m_LANBonjour == 1)
+                QueueChatCommand("LAN Bonjour enabled", User, Whisper, m_IRC);
+              break;
+            }
+
+            try
+            {
+              const uint32_t Bonjour = stoul(Payload);
+
+              if (Bonjour == 0)
+              {
+                QueueChatCommand("LAN Bonjour disabled", User, Whisper, m_IRC);
+                m_Aura->m_LANBonjour = 0;
+              }
+              else if (Bonjour == 1)
+              {
+                QueueChatCommand("LAN Bonjour enabled", User, Whisper, m_IRC);
+                m_Aura->m_LANBonjour = 1;
+              }
+            }
+            catch (...)
+            {
+              // do nothing
+            }
+
+            break;
+          }				*/
+
           //
           // !END
           //
@@ -1258,7 +1406,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
 
             QueueChatCommand(Mapname + " is being downloaded", User, Whisper, m_IRC);
 
-            int statusdl = system(("wget -t 1 --connect-timeout=20 -O \"" + m_Aura->m_MapPath + Mapname + "\" \"" + Downurl + "\"").c_str());
+            int statusdl = system(("gdown -nv --fuzzy -O \"" + m_Aura->m_MapPath + Mapname + "\" \"" + Downurl + "\"").c_str());
 
             if (statusdl == 0) {
                  QueueChatCommand(Mapname + " has been downloaded", User, Whisper, m_IRC);
@@ -2092,7 +2240,7 @@ void CBNET::QueueGameRefresh(uint8_t state, const string& gameName, CMap* map, u
     MapHeight.push_back(192);
     MapHeight.push_back(7);
 
-    m_OutPackets.push(m_Protocol->SEND_SID_STARTADVEX3(state, CreateByteArray(MapGameType, false), map->GetMapGameFlags(), MapWidth, MapHeight, gameName, m_UserName, 0, map->GetMapPath(), map->GetMapCRC(), map->GetMapSHA1(), ((hostCounter & 0x0FFFFFFF) | (m_HostCounterID << 28))));
+    m_OutPackets.push(m_Protocol->SEND_SID_STARTADVEX3(state, CreateByteArray(MapGameType, false), map->GetMapGameFlags(), MapWidth, MapHeight, gameName, m_UserName, 0, map->GetMapPath(), map->GetMapCRC(), ((m_Aura->m_LANWar3Version <= 30) ? map->GetMapSHA1() : map->GetMapHash()), ((hostCounter & 0x0FFFFFFF) | (m_HostCounterID << 28))));
   }
 }
 

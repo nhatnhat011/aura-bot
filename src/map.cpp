@@ -232,7 +232,7 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
 
   // try to calculate map_size, map_info, map_crc, map_sha1
 
-  std::vector<uint8_t> MapSize, MapInfo, MapCRC, MapSHA1;
+  std::vector<uint8_t> MapSize, MapInfo, MapCRC, MapSHA1, MapHash;
 
   if (!m_MapData.empty())
   {
@@ -361,6 +361,8 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
           vector<string> FileList;
           FileList.emplace_back("war3map.j");
           FileList.emplace_back(R"(scripts\war3map.j)");
+          FileList.emplace_back("war3map.lua");
+          FileList.emplace_back(R"(scripts\war3map.lua)");
           FileList.emplace_back("war3map.w3e");
           FileList.emplace_back("war3map.wpm");
           FileList.emplace_back("war3map.doo");
@@ -375,7 +377,7 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
           {
             // don't use scripts\war3map.j if we've already used war3map.j (yes, some maps have both but only war3map.j is used)
 
-            if (FoundScript && fileName == R"(scripts\war3map.j)")
+            if (FoundScript && (fileName == R"(scripts\war3map.j)" || fileName == "war3map.lua" || fileName == R"(scripts\war3map.lua)"))
               continue;
 
             HANDLE SubFile;
@@ -391,10 +393,21 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
 
                 if (SFileReadFile(SubFile, SubFileData, FileLength, &BytesRead, nullptr))
                 {
-                  if (fileName == "war3map.j" || fileName == R"(scripts\war3map.j)")
+				  if (m_Aura->m_LANWar3Version >= 32)  // giant Thank You to Fingon for the checksum algorithm
+				  {
+					if (FoundScript)
+					  if (m_Aura->m_LANWar3Version >= 33) // I found this one out myself
+						Val = ROTL(Val ^ XORRotateLeft((uint8_t*)SubFileData, BytesRead), 3);
+					  else
+						Val = ChunkedChecksum((uint8_t*)SubFileData, BytesRead, Val);
+					else
+					  Val = XORRotateLeft((uint8_t*)SubFileData, BytesRead);
+				  }
+				  else
+					Val = ROTL(Val ^ XORRotateLeft((uint8_t*)SubFileData, BytesRead), 3);
+                  if (fileName == "war3map.j" || fileName == R"(scripts\war3map.j)" || fileName == "war3map.lua" || fileName == R"(scripts\war3map.lua)")
                     FoundScript = true;
 
-                  Val = ROTL(Val ^ XORRotateLeft((uint8_t*)SubFileData, BytesRead), 3);
                   m_Aura->m_SHA->Update(reinterpret_cast<uint8_t*>(SubFileData), BytesRead);
                 }
 
@@ -422,6 +435,14 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
           Print("[MAP] unable to calculate map_crc/sha1 - map MPQ file not loaded");
       }
     }
+	m_Aura->m_SHA->Reset();
+	m_Aura->m_SHA->Update((uint8_t*)m_MapData.c_str(), m_MapData.size());
+	m_Aura->m_SHA->Final();
+	uint8_t Hash[20];
+	memset(Hash, 0, sizeof(uint8_t) * 20);
+	m_Aura->m_SHA->GetHash(Hash);
+	MapHash = CreateByteArray(Hash, 20);
+	Print("[MAP] calculated map_hash = " + ByteArrayToDecString(MapHash));
   }
   else
     Print("[MAP] no map data available, using config file for map_size, map_info, map_crc, map_sha1");
@@ -733,7 +754,17 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
   }
 
   m_MapSHA1 = MapSHA1;
+  
+  if (MapHash.empty())
+    MapHash = ExtractNumbers(CFG->GetString("map_hash", string()), 20);
+  else if (CFG->Exists("map_hash"))
+  {
+    Print("[MAP] overriding calculated map_sha1 with config value map_hash = " + CFG->GetString("map_hash", string()));
+    MapHash = ExtractNumbers(CFG->GetString("map_hash", string()), 20);
+  }
 
+  m_MapHash = MapHash;
+  
   if (CFG->Exists("map_filter_type"))
   {
     Print("[MAP] overriding calculated map_filter_type with config value map_filter_type = " + CFG->GetString("map_filter_type", string()));
@@ -983,4 +1014,16 @@ uint32_t CMap::XORRotateLeft(uint8_t* data, uint32_t length)
   }
 
   return Val;
+}
+
+uint32_t CMap::ChunkedChecksum(uint8_t* data, int32_t length, uint32_t checksum)
+{
+	int32_t index = 0;
+	int32_t t = length - 0x400;
+	while (index <= t)
+	{
+		checksum = ROTL(checksum ^ XORRotateLeft(&data[index], 0x400), 3);
+		index += 0x400;
+	}
+	return checksum;
 }

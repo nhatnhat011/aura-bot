@@ -75,6 +75,9 @@ protected:
   std::string                    m_KickVotePlayer;                // the player to be kicked with the currently running kick vote
   std::string                    m_HCLCommandString;              // the "HostBot Command Library" command std::string, used to pass a limited amount of data to specially designed maps
   std::string                    m_MapPath;                       // store the map path to save in the database on game end
+  std::string                    m_LastMessage;                   // Last Message from player
+  std::string                    m_LastMessagePlayer;             // Last Player name send message
+  int64_t                        m_LastMessageTick;               // Last Message Tick
   int64_t                        m_GameTicks;                     // ingame ticks
   int64_t                        m_CreationTime;                  // GetTime when the game was created
   int64_t                        m_LastPingTime;                  // GetTime when the last ping was sent
