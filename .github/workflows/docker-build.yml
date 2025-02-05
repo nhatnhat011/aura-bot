@@ -80,11 +80,12 @@ jobs:
           docker load < ${{ github.event.inputs.typetag }}-amd-image.tar
           docker load < ${{ github.event.inputs.typetag }}-arm-image.tar
 
-      - name: Create SHA manifest and push
+      - name: Create SHA manifest
         run: |
           docker manifest create \
             nhatnhat011/aura-bot:${{ github.event.inputs.typetag }} \
             --amend aura-bot:${{ github.event.inputs.typetag }}-arm \
             --amend aura-bot:${{ github.event.inputs.typetag }}-amd
-          docker manifest push nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
+      - name: Push
+        run: docker manifest push nhatnhat011/aura-bot:${{ github.event.inputs.typetag }}
   # docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }} docker.io
