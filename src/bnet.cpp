@@ -1050,7 +1050,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
               break;
             }
 
-            if ((m_Aura->m_ListMapCFG).find(Payload))
+            if ((m_Aura->m_ListMapCFG).find(Payload) != string::npos)
             {
               if (Payload == "rf" || Payload == "reforged" || Payload == "Reforged")
               {
@@ -1090,6 +1090,8 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
                   QueueChatCommand("No config file exists for this version", User, Whisper, m_IRC);
               }
             }
+            else
+              QueueChatCommand("No config file exists for this version", User, Whisper, m_IRC);
             break;
           }
 
@@ -1141,7 +1143,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
             break;
           }
 
-/*          case HashCode("bonjour"):
+/*		  case HashCode("bonjour"):
           {
             if (Payload.empty())
             {
