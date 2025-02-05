@@ -1062,7 +1062,6 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
                 }
                 else
                   QueueChatCommand("No config file exists for this version: Reforged", User, Whisper, m_IRC);
-                break;
               }
               else if (Payload == "w3ce")
               {
@@ -1074,7 +1073,6 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
                 }
                 else
                   QueueChatCommand("No config file exists for this version: W3 Community", User, Whisper, m_IRC);
-                break;
               }
               else
               {
@@ -1090,9 +1088,9 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
                 }
                 else
                   QueueChatCommand("No config file exists for this version", User, Whisper, m_IRC);
-                break;
               }
             }
+            break;
           }
 
           case HashCode("setmapcfg"):
