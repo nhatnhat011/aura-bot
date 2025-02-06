@@ -1040,9 +1040,9 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
           {
             if (Payload.empty())
             {
-              if (m_Aura->m_MapCFGPath == "/data/mapcfgs/rf/")
+              if (m_Aura->m_MapCFGPath == "mapcfgs/rf/")
                 QueueChatCommand("Map config for warcraft version: Reforged" + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
-              else if (m_Aura->m_MapCFGPath == "/data/mapcfgs/w3ce/")
+              else if (m_Aura->m_MapCFGPath == "mapcfgs/w3ce/")
                 QueueChatCommand("Map config for warcraft version: W3 Community" + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
               else
                 QueueChatCommand("Map config for warcraft version: " + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
@@ -1054,10 +1054,10 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
             {
               if (Payload == "rf" || Payload == "reforged" || Payload == "Reforged")
               {
-                if (FileExists("data/mapcfgs/rf/blizzard.j"))
+                if (FileExists("mapcfgs/rf/blizzard.j"))
                 {
                   m_Aura->m_LANWar3Version = 100;
-                  m_Aura->m_MapCFGPath = "/data/mapcfgs/rf/";
+                  m_Aura->m_MapCFGPath = "mapcfgs/rf/";
                   QueueChatCommand("Map config for warcraft version set to: Reforged", User, Whisper, m_IRC);
                 }
                 else
@@ -1065,10 +1065,10 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
               }
               else if (Payload == "w3ce")
               {
-                if (FileExists("data/mapcfgs/w3ce/blizzard.j"))
+                if (FileExists("mapcfgs/w3ce/blizzard.j"))
                 {
                   m_Aura->m_LANWar3Version = 29;
-                  m_Aura->m_MapCFGPath = "/data/mapcfgs/w3ce/";
+                  m_Aura->m_MapCFGPath = "mapcfgs/w3ce/";
                   QueueChatCommand("Map config for warcraft version set to: W3 Community", User, Whisper, m_IRC);
                 }
                 else
@@ -1077,13 +1077,13 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
               else
               {
                 const uint32_t warver = stoul(Payload);
-                if ((warver >= 24 && warver <= 28) || FileExists("data/mapcfgs/" + to_string(warver) + "/blizzard.j"))
+                if ((warver >= 24 && warver <= 28) || FileExists("mapcfgs/" + to_string(warver) + "/blizzard.j"))
                 {
                   m_Aura->m_LANWar3Version = warver;
                   if (warver >= 24 && warver <= 28)
-                    m_Aura->m_MapCFGPath = "/data/mapcfgs/";
+                    m_Aura->m_MapCFGPath = "mapcfgs/";
                   else
-                    m_Aura->m_MapCFGPath = "/data/mapcfgs/" +  to_string(warver) + "/";
+                    m_Aura->m_MapCFGPath = "mapcfgs/" +  to_string(warver) + "/";
                   QueueChatCommand("Map config for warcraft version set to: " + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
                 }
                 else
@@ -1108,7 +1108,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
               break;
             }
 
-            m_Aura->m_MapCFGPath = "/data/" + Payload + "/";
+            m_Aura->m_MapCFGPath = Payload + "/";
             QueueChatCommand("Mapcfg path:" + m_Aura->m_MapCFGPath, User, Whisper, m_IRC);
             break;
           }
