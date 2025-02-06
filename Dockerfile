@@ -13,5 +13,5 @@ COPY --from=build /aura-bot/wc3 /app/wc3
 COPY --from=build /aura-bot/mapcfgs /app/mapcfgs
 RUN apk add libbz2 gmp libstdc++ python3 py3-pip &&\
     pip install gdown --break-system-packages
-WORKDIR /app
-CMD ["./entry.sh"]
+WORKDIR /app/data/
+CMD ["/app/entry.sh"]
