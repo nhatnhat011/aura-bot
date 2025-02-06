@@ -75,7 +75,7 @@ docker run \
   --env SERVER=server.eurobattle.net \
   --env BOT_USER_NAME=<YOUR_BOT_USER_NAME> \
   --env BOT_PASSWORD=<YOUR_BOT_PASSWORD> \
-  --env ROOT_ADMINS= \
+  --env ROOT_ADMINS=<YOUR_USER_NAME> <USER_NAME_ADMIN2> \
   -v ./aura-bot:/app/data \
   -p 6113-6114:6113-6114/udp \
   -p 6113-6114:6113-6114/tcp \
