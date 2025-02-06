@@ -1041,9 +1041,9 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
             if (Payload.empty())
             {
               if (m_Aura->m_MapCFGPath == "mapcfgs/rf/")
-                QueueChatCommand("Map config for warcraft version: Reforged" + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
+                QueueChatCommand("Map config for warcraft version: Reforged", User, Whisper, m_IRC);
               else if (m_Aura->m_MapCFGPath == "mapcfgs/w3ce/")
-                QueueChatCommand("Map config for warcraft version: W3 Community" + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
+                QueueChatCommand("Map config for warcraft version: W3 Community", User, Whisper, m_IRC);
               else
                 QueueChatCommand("Map config for warcraft version: " + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
               QueueChatCommand("List config: " + m_Aura->m_ListMapCFG, User, Whisper, m_IRC);
