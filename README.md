@@ -1,8 +1,5 @@
 ﻿Aura
 ====
-[![Build Status](https://secure.travis-ci.org/Josko/aura-bot.png?branch=master)](http://travis-ci.org/Josko/aura-bot)
-[![Build Status](https://ci.appveyor.com/api/projects/status/u67db01q5nbt172l/branch/master?svg=true)](https://ci.appveyor.com/project/Josko/aura-bot/branch/master)
-[![Build Status](https://scan.coverity.com/projects/1748/badge.svg)](https://scan.coverity.com/projects/josko-aura-bot)
 
 Fork of Josko's aura-bot
 ------------------------
@@ -51,6 +48,70 @@ Multi-platform
 --------------
 
 The bot runs on little-endian Linux (32-bit and 64-bit), Windows (32-bit and 64-bit) and OS X (64-bit Intel CPU) machines.
+
+USING DOCKER
+------
+
+## Installation
+
+### 1. Install Docker
+
+If you haven't installed Docker yet, install it by running:
+
+```shell
+curl -sSL https://get.docker.com | sh
+sudo usermod -aG docker $(whoami)
+exit
+```
+And log in again.
+
+### 2. Run Bot Easy
+
+To automatically install & run aura-bot, simply run:
+
+```shell
+docker run \
+  --name aura-bot \
+  --env SERVER=server.eurobattle.net \
+  --env BOT_USER_NAME=<YOUR_BOT_USER_NAME> \
+  --env BOT_PASSWORD=<YOUR_BOT_PASSWORD> \
+  --env ROOT_ADMINS= \
+  -v ./aura-bot:/app/data \
+  -p 6113-6114:6113-6114/udp \
+  -p 6113-6114:6113-6114/tcp \
+  --restart on-failure:5 \
+  nhatnhat011/aura-bot:latest
+```
+
+Docker compose 
+```yaml
+services:
+  aura-bot:
+    image: nhatnhat011/aura-bot:latest
+    container_name: aura-bot
+    environment:
+      #- SCRIPT_PATH= # (Option) Default: ./aura.cfg
+      #- BOT_VIRTUAL_NAME= # (Option) Default: |cFFFF0000Aura
+      #- HOST_PORT= # (Option) Default: 6113
+      #- RECONNECT_PORT= # (Option) Default: 6114
+      - SERVER=server.eurobattle.net # Required to run. Default: server.eurobattle.net
+      #- SERVER_PORT= # (Option) Default port 6112
+      #- SERVER_ALIAS= # (Option) Default EuroBattle
+      - BOT_USER_NAME= # Required to run
+      - BOT_PASSWORD= # Required to run
+      - ROOT_ADMINS= # Required to control bots
+      #- WAR_VERSION= # (Option) Default: 28
+    volumes:
+      - ./aura-bot:/app/data
+    ports:
+      - 6113-6114:6113-6114/udp
+      - 6113-6114:6113-6114
+    restart: on-failure:5
+    logging:
+      options:
+        max-size: "5m"
+        max-file: "2"
+```
 
 Building
 --------
