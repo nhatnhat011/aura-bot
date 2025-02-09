@@ -1077,7 +1077,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
               else
               {
                 const uint32_t warver = stoul(Payload);
-                if ((warver >= 24 && warver <= 28) || FileExists("mapcfgs/" + to_string(warver) + "/blizzard.j"))
+                if (FileExists("mapcfgs/" + to_string(warver) + "/blizzard.j"))
                 {
                   m_Aura->m_LANWar3Version = warver;
                   if (warver >= 24 && warver <= 28)
