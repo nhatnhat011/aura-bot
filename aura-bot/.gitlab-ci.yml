@@ -1,0 +1,154 @@
+####
+# GitLab CI
+####
+
+# Image
+image: ubuntu:24.04
+
+# Stages
+stages:
+  - build
+  - publish
+
+# Build
+Assemble:
+  stage: build
+  artifacts:
+    paths:
+      - dist/
+  script:
+  # Packages
+  - cd $CI_PROJECT_DIR
+  - apt-get update && apt-get install -y build-essential git libssl-dev libgmp3-dev libbz2-dev zlib1g-dev libcurl4-openssl-dev curl cmake
+  - gcc --version
+  - cmake --version
+  - mkdir -p jass dist/bin-static dist/bin-shared
+  - curl https://raw.githubusercontent.com/lep/jassdoc/master/Blizzard.j > "jass/blizzard.j"
+  - curl https://raw.githubusercontent.com/lep/jassdoc/master/common.j > "jass/common.j"
+  # BNCSUtil (dynamic, .so)
+  - cd $CI_PROJECT_DIR
+  - cd deps/bncsutil/src/bncsutil
+  - export BNCSUTIL_SHARED_LIB=1
+  - make && make install
+  - unset BNCSUTIL_SHARED_LIB
+  - cd $CI_PROJECT_DIR
+  ## Shared library
+  - cp /usr/lib/libbncsutil.so /usr/local/lib
+  - cp /usr/lib/libbncsutil.so* dist/bin-shared
+  ## Header files
+  ### - cp -R /usr/include/bncsutil dist/include
+  # StormLib (shared, .so)
+  - cd $CI_PROJECT_DIR
+  - cd deps/StormLib
+  #- sed -i -e 's/option(BUILD_SHARED_LIBS "Compile shared libraries" OFF)/option(BUILD_SHARED_LIBS "Compile shared libraries" ON)/g' CMakeLists.txt
+  - rm -rf build && mkdir -p build
+  - cd build && cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=1 ..
+  - make && make install
+  - cd $CI_PROJECT_DIR
+  ## Shared library
+  ### Already at /usr/local/lib
+  ### - cp /usr/local/lib/libstorm.so /usr/local/lib
+  - cp /usr/local/lib/libstorm.so* dist/bin-shared
+  ## Header files
+  ### - cp /usr/local/include/StormLib.h dist/include/stormlib
+  ### - cp /usr/local/include/StormPort.h dist/include/stormlib
+  # MiniUPNP (shared, .so)
+  - cd $CI_PROJECT_DIR
+  - cd deps/miniupnpc
+  - make && make install
+  - cd $CI_PROJECT_DIR
+  ## Shared library
+  - cp /usr/lib/libminiupnpc.so /usr/local/lib
+  - cp /usr/lib/libminiupnpc.so* dist/bin-shared
+  # CPR (shared, .so)
+  - git clone https://github.com/libcpr/cpr.git cpr-src
+  - cd cpr-src && git checkout 3fbe802 && mkdir build && cd build
+  - cmake .. -DCPR_USE_SYSTEM_CURL=ON -DBUILD_SHARED_LIBS=ON
+  - cmake --build . --parallel
+  - cmake --install .
+  - cd $CI_PROJECT_DIR
+  ## Shared library
+  - cp /usr/local/lib/libcpr.so* dist/bin-shared
+  # DPP (shared, .so)
+  # - git clone https://github.com/brainboxdotcc/DPP.git dpp-src
+  # - cd dpp-src && mkdir build && cd build
+  # - cmake .. -DBUILD_SHARED_LIBS=ON -DBUILD_VOICE_SUPPORT=OFF -DDPP_BUILD_TEST=OFF
+  # - cmake --build . -j4
+  # - make install
+  # - cd $CI_PROJECT_DIR
+  ## Shared library
+  # - cp /usr/local/lib/libdpp.so* dist/bin-shared
+  ## Log all library locations
+  - find . /usr /lib /lib64 /usr/local/lib /usr/lib /usr/local -name libgmp.so*
+  - find . /usr /lib /lib64 /usr/local/lib /usr/lib /usr/local -name libgmp.a*
+  - find . /usr /lib /lib64 /usr/local/lib /usr/lib /usr/local -name libbncsutil.so*
+  - find . /usr /lib /lib64 /usr/local/lib /usr/lib /usr/local -name libbncsutil.a*
+  - find . /usr /lib /lib64 /usr/local/lib /usr/lib /usr/local -name libstorm.so*
+  - find . /usr /lib /lib64 /usr/local/lib /usr/lib /usr/local -name libstorm.a*
+  - find . /usr /lib /lib64 /usr/local/lib /usr/lib /usr/local -name libminiupnpc.so*
+  - find . /usr /lib /lib64 /usr/local/lib /usr/lib /usr/local -name libminiupnpc.a*
+  - find . /usr /lib /lib64 /usr/local/lib /usr/lib /usr/local -name libcpr.so*
+  - find . /usr /lib /lib64 /usr/local/lib /usr/lib /usr/local -name libcpr.a*
+  # - find . /usr /lib /lib64 /usr/local/lib /usr/lib /usr/local -name libdpp.so*
+  # - find . /usr /lib /lib64 /usr/local/lib /usr/lib /usr/local -name libdpp.a*
+  # Aura (all shared libraries)
+  - cd $CI_PROJECT_DIR
+  - export AURALINKMINIUPNP=1
+  - export AURALINKCPR=1
+  # This takes too long.
+  - export AURALINKDPP=0
+  - make && make install
+  - unset AURALINKMINIUPNP
+  - unset AURALINKCPR
+  - unset AURALINKDPP
+  ## on static build failures, the error is reported iff mv below fails
+  - mv /usr/bin/aura dist/bin-shared
+  - cd dist/bin-shared
+  - chmod +x aura
+  - chmod +x *.so
+  - chmod +x *.so.*
+  - export LD_LIBRARY_PATH=$PWD
+  ## test setting AURA_HOME
+  ### expects [AURA] copying config-example.ini to config.ini...
+  ### exit 1: no inputs connected
+  ###          initialization failure - please review your configuration file
+  - export AURA_HOME=$CI_PROJECT_DIR
+  - ./aura --verbose --no-bnet --w3version=27 --log-level=debug --exit || echo $?
+  ## test --config
+  ### expects directly reads config-example.ini
+  ### exits 1: no inputs connected.
+  ###          initialization failure - please review your configuration file
+  - ./aura --verbose --no-bnet --w3version=27 --config=config-example.ini --exit || echo $?
+  ## test --config --stdpaths
+  ### exits 1: required config file not found [config-example.ini]
+  ###          error loading configuration
+  - ./aura --verbose --stdpaths --no-bnet --w3version=27 --config=config-example.ini --log-level=debug --exit || echo $?
+  ## test --config --stdpaths matching home dir
+  ### exits 1: using $AURA_HOME=/builds/USER/aura-bot/
+  ###          no inputs connected
+  ###          initialization failure - please review your configuration file
+  - ./aura --verbose --stdpaths --no-bnet --w3version=27 --config=../../config-example.ini --log-level=debug --exit || echo $?
+  - export AURA_HOME=$PWD
+  ## test running without config file
+  ### exits 1: config.ini, config-example.ini not found within home dir
+  ###          initialization failure - please review your configuration file
+  - ./aura --verbose --no-bnet --w3version=27 --log-level=debug --exit || echo $?
+  ## test running without config file
+  ### exits 1: required config file not found [config-example.ini]
+  ###          error loading configuration
+  - ./aura --verbose --stdpaths --no-bnet --w3version=27 --config=config-example.ini --log-level=debug --exit || echo $?
+  ## test hosting games (stdpaths, does not exist)
+  ### exits 0: Input does not refer to a valid file
+  ###          shutting down
+  - ./aura --verbose --stdpaths --homedir=$CI_PROJECT_DIR --no-bnet --w3version=27 --auto-port-forward --check-joinable --lobby-timeout=1 --log-level=debug "wormwar.ini" || echo $?
+  ## test hosting games (file, expect OK)
+  ## exits 0: lobby time limit exceeded
+  - ./aura --verbose --homedir=$CI_PROJECT_DIR --no-bnet --w3version=27 --auto-port-forward --check-joinable --lobby-timeout=1 --log-level=debug "wormwar.ini" || echo $?
+  ## test hosting games (relative, expect OK)
+  ## exits 0: lobby time limit exceeded
+  - ./aura --verbose --homedir=$CI_PROJECT_DIR --no-bnet --w3version=27 --auto-port-forward --check-joinable --lobby-timeout=1 --log-level=debug "../../mapcfgs/wormwar.ini" || echo $?
+  ## test hosting games (relative, expect OK)
+  ## exits 0: lobby time limit exceeded
+  - ./aura --verbose --stdpaths --homedir=$CI_PROJECT_DIR --no-bnet --w3version=27 --auto-port-forward --check-joinable --lobby-timeout=1 --log-level=debug "../../mapcfgs/wormwar.ini" || echo $?
+  - unset AURA_HOME
+  - unset LD_LIBRARY_PATH

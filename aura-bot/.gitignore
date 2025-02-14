@@ -1,0 +1,80 @@
+# Compiled source #
+###################
+*.dll
+*.exe
+*.pdb
+*.o
+*.so
+*.a
+*.dylib
+*.framework
+
+aura.exe
+aura++
+
+# OS generated files #
+######################
+Thumbs.db
+.DS_Store
+
+# Databases #
+#############
+*.db
+*.dbs
+*.dbs-journal
+*.db-wal
+*.db-shm
+
+# Editor generated files #
+##########################
+*.swp
+*.user
+*~
+
+# SVN Directories #
+###################
+.svn/
+
+# VS Directories #
+##################
+*.ipch
+/.vs
+*.log
+*.opendb
+*.suo
+
+# MSVC             #
+####################
+
+**/.msvc/
+**/.msvc.tmp/
+**/Debug/
+**/Debug-x64/
+**/Release/
+**/Release-x64/
+deps/miniupnpc/msvc/build
+
+# CMake directories #
+#####################
+
+build/
+
+# Other #
+#########
+
+config*.ini
+!config-example.ini
+jass/
+mapcache/
+mapcfgs/
+mapcfgs_old/
+!mapcfgs/wormwar.ini
+dist/**/*
+Share/
+Share*
+log.txt
+patch.diff
+gamedata-update.js
+*.json
+*.diff
+
