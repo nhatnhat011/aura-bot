@@ -1,5 +1,30 @@
 /*
 
+  Copyright [2024] [Leonardo Julca]
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+ */
+ 
+ /*
+
    Copyright [2010] [Josko Nikolic]
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +39,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 
-   CODE PORTED FROM THE ORIGINAL GHOST PROJECT: http://ghost.pwner.org/
+   CODE PORTED FROM THE ORIGINAL GHOST PROJECT
 
  */
 
@@ -22,39 +47,39 @@
 #include "aura.h"
 #include "auradb.h"
 #include "game.h"
-#include "gameplayer.h"
-#include "gameprotocol.h"
+#include "game_user.h"
+#include "protocol/game_protocol.h"
 #include "util.h"
 
 using namespace std;
 
 //
-// CStats
+// CDotaStats
 //
 
-CStats::CStats(CGame* nGame)
+CDotaStats::CDotaStats(CGame* nGame)
   : m_Game(nGame),
     m_Winner(0)
 {
   Print("[STATS] using dota stats");
 
-  for (auto& player : m_Players)
-    player = nullptr;
+  for (auto& dotaPlayer : m_Players)
+    dotaPlayer = nullptr;
 }
 
-CStats::~CStats()
+CDotaStats::~CDotaStats()
 {
-  for (auto& player : m_Players)
+  for (auto& dotaPlayer : m_Players)
   {
-    if (player)
-      delete player;
+    if (dotaPlayer)
+      delete dotaPlayer;
   }
 }
 
-bool CStats::ProcessAction(CIncomingAction* Action)
+bool CDotaStats::ProcessAction(uint8_t UID, const CIncomingAction& action)
 {
-  uint32_t                    i          = 0;
-  const std::vector<uint8_t>* ActionData = Action->GetAction();
+  size_t                      i          = 0;
+  const std::vector<uint8_t>& ActionData = action.GetImmutableAction();
   std::vector<uint8_t>        Data, Key, Value;
 
   // dota actions with real time replay data start with 0x6b then the nullptr terminated string "dr.x"
@@ -65,31 +90,31 @@ bool CStats::ProcessAction(CIncomingAction* Action)
 
   do
   {
-    if ((*ActionData)[i] == 0x6b && (*ActionData)[i + 1] == 0x64 && (*ActionData)[i + 2] == 0x72 && (*ActionData)[i + 3] == 0x2e && (*ActionData)[i + 4] == 0x78 && (*ActionData)[i + 5] == 0x00)
+    if (ActionData[i] == ACTION_SYNC_INT && ActionData[i + 1] == 0x64 && ActionData[i + 2] == 0x72 && ActionData[i + 3] == 0x2e && ActionData[i + 4] == 0x78 && ActionData[i + 5] == 0x00)
     {
       // we think we've found an action with real time replay data (but we can't be 100% sure)
-      // next we parse out two nullptr terminated strings and a 4 byte int32_teger
+      // next we parse out two nullptr terminated strings and a 4 byte integer
 
-      if (ActionData->size() >= i + 7)
+      if (ActionData.size() >= i + 7)
       {
         // the first nullptr terminated string should either be the strings "Data" or "Global" or a player id in ASCII representation, e.g. "1" or "2"
 
-        Data = ExtractCString(*ActionData, i + 6);
+        Data = ExtractCString(ActionData, i + 6);
 
-        if (ActionData->size() >= i + 8 + Data.size())
+        if (ActionData.size() >= i + 8 + Data.size())
         {
           // the second nullptr terminated string should be the key
 
-          Key = ExtractCString(*ActionData, i + 7 + Data.size());
+          Key = ExtractCString(ActionData, i + 7 + Data.size());
 
-          if (ActionData->size() >= i + 12 + Data.size() + Key.size())
+          if (ActionData.size() >= i + 12 + Data.size() + Key.size())
           {
             // the 4 byte int32_teger should be the value
 
-            Value                     = std::vector<uint8_t>(ActionData->begin() + i + 8 + Data.size() + Key.size(), ActionData->begin() + i + 12 + Data.size() + Key.size());
+            Value                     = std::vector<uint8_t>(ActionData.begin() + i + 8 + Data.size() + Key.size(), ActionData.begin() + i + 12 + Data.size() + Key.size());
             const string   DataString = string(begin(Data), end(Data));
             const string   KeyString  = string(begin(Key), end(Key));
-            const uint32_t ValueInt   = ByteArrayToUInt32(Value, false);
+            const uint32_t ValueInt   = static_cast<uint8_t>(ByteArrayToUInt32(Value, false));
 
             //Print( "[STATS] " + DataString + ", " + KeyString + ", " + to_string( ValueInt ) );
 
@@ -104,16 +129,20 @@ bool CStats::ProcessAction(CIncomingAction* Action)
                 // a hero died
 
                 const string   VictimName   = KeyString.substr(4);
-                const uint32_t KillerColour = ValueInt;
-                const uint32_t VictimColour = stoul(VictimName);
-                CGamePlayer*   Killer       = m_Game->GetPlayerFromColour(ValueInt);
-                CGamePlayer*   Victim       = m_Game->GetPlayerFromColour(VictimColour);
+                uint8_t  KillerColor       = static_cast<uint8_t>(ValueInt);
+                uint8_t  VictimColor = 0;
+                try {
+                  VictimColor = static_cast<uint8_t>(stoul(VictimName));
+                } catch (...) {
+                }
+                GameUser::CGameUser* Killer = m_Game->GetPlayerFromColor(KillerColor);
+                GameUser::CGameUser* Victim = m_Game->GetPlayerFromColor(VictimColor);
 
-                if (!m_Players[ValueInt])
-                  m_Players[ValueInt] = new CDBDotAPlayer();
+                if (!m_Players[KillerColor])
+                  m_Players[KillerColor] = new CDBDotAPlayer();
 
-                if (!m_Players[VictimColour])
-                  m_Players[VictimColour] = new CDBDotAPlayer();
+                if (!m_Players[VictimColor])
+                  m_Players[VictimColor] = new CDBDotAPlayer();
 
                 if (Victim)
                 {
@@ -121,19 +150,19 @@ bool CStats::ProcessAction(CIncomingAction* Action)
                   {
                     // check for hero denies
 
-                    if (!((KillerColour <= 5 && VictimColour <= 5) || (KillerColour >= 7 && VictimColour >= 7)))
+                    if (!((KillerColor <= 5 && VictimColor <= 5) || (KillerColor >= 7 && VictimColor >= 7)))
                     {
                       // non-leaver killed a non-leaver
 
-                      m_Players[KillerColour]->IncKills();
-                      m_Players[VictimColour]->IncDeaths();
+                      m_Players[KillerColor]->IncKills();
+                      m_Players[VictimColor]->IncDeaths();
                     }
                   }
                   else
                   {
                     // Scourge/Sentinel/leaver killed a non-leaver
 
-                    m_Players[VictimColour]->IncDeaths();
+                    m_Players[VictimColor]->IncDeaths();
                   }
                 }
               }
@@ -141,15 +170,19 @@ bool CStats::ProcessAction(CIncomingAction* Action)
               {
                 // check if the assist was on a non-leaver
 
-                if (m_Game->GetPlayerFromColour(ValueInt))
+                if (m_Game->GetPlayerFromColor(static_cast<uint8_t>(ValueInt)))
                 {
                   string         AssisterName   = KeyString.substr(6);
-                  const uint32_t AssisterColour = stoul(AssisterName);
+                  uint8_t  AssisterColor       = 0;
+                  try {
+                    AssisterColor = static_cast<uint8_t>(stoul(AssisterName));
+                  } catch (...) {
+                  }
 
-                  if (!m_Players[AssisterColour])
-                    m_Players[AssisterColour] = new CDBDotAPlayer();
+                  if (!m_Players[AssisterColor])
+                    m_Players[AssisterColor] = new CDBDotAPlayer();
 
-                  m_Players[AssisterColour]->IncAssists();
+                  m_Players[AssisterColor]->IncAssists();
                 }
               }
               else if (KeyString.size() >= 8 && KeyString.compare(0, 5, "Tower") == 0)
@@ -198,7 +231,7 @@ bool CStats::ProcessAction(CIncomingAction* Action)
                 // Value 1 -> sentinel
                 // Value 2 -> scourge
 
-                m_Winner = ValueInt;
+                m_Winner = static_cast<uint8_t>(ValueInt);
 
                 if (m_Winner == 1)
                   Print("[STATS: " + m_Game->GetGameName() + "] detected winner: Sentinel");
@@ -212,14 +245,18 @@ bool CStats::ProcessAction(CIncomingAction* Action)
             {
               // these are only received at the end of the game
 
-              const uint32_t ID = stoul(DataString);
+              uint8_t ID = 0;
+              try {
+                ID = static_cast<uint8_t>(stoul(DataString));
+              } catch (...) {
+              }
 
               if ((ID >= 1 && ID <= 5) || (ID >= 7 && ID <= 11))
               {
                 if (!m_Players[ID])
                 {
                   m_Players[ID] = new CDBDotAPlayer();
-                  m_Players[ID]->SetColour(ID);
+                  m_Players[ID]->SetColor(ID);
                 }
 
                 // Key "3"		-> Creep Kills
@@ -248,9 +285,9 @@ bool CStats::ProcessAction(CIncomingAction* Action)
                       // unfortunately the actual player colours are from 1-5 and from 7-11 so we need to deal with this case here
 
                       if (ValueInt >= 6)
-                        m_Players[ID]->SetNewColour(ValueInt + 1);
+                        m_Players[ID]->SetNewColor(ValueInt + 1);
                       else
-                        m_Players[ID]->SetNewColour(ValueInt);
+                        m_Players[ID]->SetNewColor(ValueInt);
                     }
 
                     break;
@@ -274,12 +311,12 @@ bool CStats::ProcessAction(CIncomingAction* Action)
     }
     else
       ++i;
-  } while (ActionData->size() >= i + 6);
+  } while (ActionData.size() >= i + 6);
 
   return m_Winner != 0;
 }
 
-void CStats::Save(CAura* Aura, CAuraDB* DB)
+void CDotaStats::Save(CAura* nAura, CAuraDB* DB)
 {
   if (DB->Begin())
   {
@@ -297,11 +334,11 @@ void CStats::Save(CAura* Aura, CAuraDB* DB)
     {
       if (m_Players[i])
       {
-        const uint32_t Colour = m_Players[i]->GetNewColour();
+        const uint8_t Color = m_Players[i]->GetNewColor();
 
-        if (!((Colour >= 1 && Colour <= 5) || (Colour >= 7 && Colour <= 11)))
+        if (!((Color >= 1 && Color <= 5) || (Color >= 7 && Color <= 11)))
         {
-          Print("[STATS: " + m_Game->GetGameName() + "] discarding player data, invalid colour found");
+          Print("[STATS: " + m_Game->GetGameName() + "] discarding dotaPlayer data, invalid colour found");
           delete m_Players[i];
           m_Players[i] = nullptr;
           continue;
@@ -309,9 +346,9 @@ void CStats::Save(CAura* Aura, CAuraDB* DB)
 
         for (uint32_t j = i + 1; j < 12; ++j)
         {
-          if (m_Players[j] && Colour == m_Players[j]->GetNewColour())
+          if (m_Players[j] && Color == m_Players[j]->GetNewColor())
           {
-            Print("[STATS: " + m_Game->GetGameName() + "] discarding player data, duplicate colour found");
+            Print("[STATS: " + m_Game->GetGameName() + "] discarding dotaPlayer data, duplicate colour found");
             delete m_Players[j];
             m_Players[j] = nullptr;
           }
@@ -319,24 +356,26 @@ void CStats::Save(CAura* Aura, CAuraDB* DB)
       }
     }
 
-    for (auto& player : m_Players)
+    for (auto& dotaPlayer : m_Players)
     {
-      if (player)
+      if (dotaPlayer)
       {
-        const uint32_t Colour = player->GetNewColour();
-        const string   Name   = m_Game->GetDBPlayerNameFromColour(Colour);
+        const uint8_t  Color = dotaPlayer->GetNewColor();
+        const CDBGamePlayer* DBPlayer = m_Game->GetDBPlayerFromColor(Color);
+        const string Name = DBPlayer->GetName();
+        const string Server = DBPlayer->GetServer();
 
         if (Name.empty())
           continue;
 
         uint8_t Win = 0;
 
-        if ((m_Winner == 1 && Colour >= 1 && Colour <= 5) || (m_Winner == 2 && Colour >= 7 && Colour <= 11))
+        if ((m_Winner == 1 && Color >= 1 && Color <= 5) || (m_Winner == 2 && Color >= 7 && Color <= 11))
           Win = 1;
-        else if ((m_Winner == 2 && Colour >= 1 && Colour <= 5) || (m_Winner == 1 && Colour >= 7 && Colour <= 11))
+        else if ((m_Winner == 2 && Color >= 1 && Color <= 5) || (m_Winner == 1 && Color >= 7 && Color <= 11))
           Win = 2;
 
-        Aura->m_DB->DotAPlayerAdd(Name, Win, player->GetKills(), player->GetDeaths(), player->GetCreepKills(), player->GetCreepDenies(), player->GetAssists(), player->GetNeutralKills(), player->GetTowerKills(), player->GetRaxKills(), player->GetCourierKills());
+        nAura->m_DB->UpdateDotAPlayerOnEnd(Name, Server, Win, dotaPlayer->GetKills(), dotaPlayer->GetDeaths(), dotaPlayer->GetCreepKills(), dotaPlayer->GetCreepDenies(), dotaPlayer->GetAssists(), dotaPlayer->GetNeutralKills(), dotaPlayer->GetTowerKills(), dotaPlayer->GetRaxKills(), dotaPlayer->GetCourierKills());
         ++Players;
       }
     }

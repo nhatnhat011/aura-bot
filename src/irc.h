@@ -1,5 +1,30 @@
 /*
 
+  Copyright [2024] [Leonardo Julca]
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+ */
+
+/*
+
    Copyright [2010] [Josko Nikolic]
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,53 +39,54 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 
-   CODE PORTED FROM THE ORIGINAL GHOST PROJECT: http://ghost.pwner.org/
+   CODE PORTED FROM THE ORIGINAL GHOST PROJECT
 
  */
 
 #ifndef AURA_IRC_H_
 #define AURA_IRC_H_
 
-#include <vector>
-#include <string>
-#include <cstdint>
+#include "includes.h"
+#include "config/config_irc.h"
 
 #define LF ('\x0A')
-
-class CAura;
-class CTCPClient;
+#define IRC_TCP_KEEPALIVE_IDLE_TIME 300
 
 class CIRC
 {
 public:
   CAura*                   m_Aura;
   CTCPClient*              m_Socket;
-  std::vector<std::string> m_Channels;
-  std::vector<std::string> m_RootAdmins;
-  std::string              m_Server;
-  std::string              m_ServerIP;
-  std::string              m_Nickname;
-  std::string              m_NicknameCpy;
-  std::string              m_Username;
-  std::string              m_Password;
   int64_t                  m_LastConnectionAttemptTime;
   int64_t                  m_LastPacketTime;
   int64_t                  m_LastAntiIdleTime;
-  uint16_t                 m_Port;
-  int8_t                   m_CommandTrigger;
-  bool                     m_Exiting;
   bool                     m_WaitingToConnect;
-  bool                     m_OriginalNick;
+  bool                     m_LoggedIn;
+  std::string              m_NickName;
+  CIRCConfig               m_Config;
 
-  CIRC(CAura* nAura, std::string nServer, const std::string& nNickname, const std::string& nUsername, std::string nPassword, std::vector<std::string> nChannels, std::vector<std::string> nRootAdmins, uint16_t nPort, int8_t nCommandTrigger);
+  CIRC(CConfig& nCFG);
   ~CIRC();
   CIRC(CIRC&) = delete;
 
-  uint32_t SetFD(void* fd, void* send_fd, int32_t* nfds);
-  bool Update(void* fd, void* send_fd);
+  [[nodiscard]] inline CTCPClient* GetSocket() const { return m_Socket; }
+  [[nodiscard]] inline bool GetIsEnabled() const { return m_Config.m_Enabled; }
+  [[nodiscard]] bool MatchHostName(const std::string& hostName) const;
+  [[nodiscard]] inline bool GetIsLoggedIn() const { return m_LoggedIn; }
+
+  [[nodiscard]] uint32_t SetFD(void* fd, void* send_fd, int32_t* nfds) const;
+  void ResetConnection();
+  void Disable() { m_Config.m_Enabled = false; }
+  void Update(void* fd, void* send_fd);
   void ExtractPackets();
-  void SendIRC(const std::string& message);
-  void SendMessageIRC(const std::string& message, const std::string& target);
+  void Send(const std::string& message);
+  void SendUser(const std::string& message, const std::string& target);
+  void SendChannel(const std::string& message, const std::string& target);
+  void SendAllChannels(const std::string& message);
+
+  [[nodiscard]] bool GetIsModerator(const std::string& nHostName);
+  [[nodiscard]] bool GetIsSudoer(const std::string& nHostName);
+  [[nodiscard]] CCommandConfig* GetCommandConfig() const;
 };
 
 #endif // AURA_IRC_H_

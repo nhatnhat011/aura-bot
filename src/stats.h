@@ -14,7 +14,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 
-   CODE PORTED FROM THE ORIGINAL GHOST PROJECT: http://ghost.pwner.org/
+   CODE PORTED FROM THE ORIGINAL GHOST PROJECT
 
  */
 
@@ -24,7 +24,7 @@
 #include "includes.h"
 
 //
-// CStats
+// CDotaStats
 //
 
 // the stats class is passed a copy of every player action in ProcessAction when it's received
@@ -33,12 +33,7 @@
 // and in the Save function you write the results to the database
 // e.g. for dota the number of kills/deaths/assists, etc...
 
-class CGame;
-class CDBDotAPlayer;
-class CIncomingAction;
-class CAura;
-class CAuraDB;
-class CStats
+class CDotaStats
 {
 protected:
   CGame*         m_Game;
@@ -46,12 +41,12 @@ protected:
   uint8_t        m_Winner;
 
 public:
-  explicit CStats(CGame* nGame);
-  ~CStats();
-  CStats(CStats&) = delete;
+  explicit CDotaStats(CGame* nGame);
+  ~CDotaStats();
+  CDotaStats(CDotaStats&) = delete;
 
-  bool ProcessAction(CIncomingAction* Action);
-  void Save(CAura* CAura, CAuraDB* DB);
+  bool ProcessAction(uint8_t UID, const CIncomingAction& action);
+  void Save(CAura* nAura, CAuraDB* nDB);
 };
 
 #endif // AURA_STATS_H_

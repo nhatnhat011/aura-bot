@@ -2,6 +2,7 @@
 ###################
 *.dll
 *.exe
+*.pdb
 *.o
 *.so
 *.a
@@ -15,16 +16,19 @@ aura++
 ######################
 Thumbs.db
 .DS_Store
-.vscode
 
 # Databases #
 #############
+*.db
 *.dbs
 *.dbs-journal
+*.db-wal
+*.db-shm
 
 # Editor generated files #
 ##########################
 *.swp
+*.user
 *~
 
 # SVN Directories #
@@ -38,6 +42,39 @@ Thumbs.db
 *.log
 *.opendb
 *.suo
-*.db
-*.db-wal
-*.db-shm
+
+# MSVC             #
+####################
+
+**/.msvc/
+**/.msvc.tmp/
+**/Debug/
+**/Debug-x64/
+**/Release/
+**/Release-x64/
+deps/miniupnpc/msvc/build
+
+# CMake directories #
+#####################
+
+build/
+
+# Other #
+#########
+
+config*.ini
+!config-example.ini
+jass/
+mapcache/
+mapcfgs/
+mapcfgs_old/
+!mapcfgs/wormwar.ini
+dist/**/*
+Share/
+Share*
+log.txt
+patch.diff
+gamedata-update.js
+*.json
+*.diff
+

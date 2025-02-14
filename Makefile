@@ -4,18 +4,52 @@ ARCH = $(shell uname -m)
 INSTALL_DIR = /usr
 
 ifndef CC
-  CC = gcc
+	CC = gcc
 endif
 
 ifndef CXX
-  CXX = g++
+	CXX = g++
 endif
 
-CCFLAGS = -fno-builtin
-CXXFLAGS = -std=c++14 -pipe -Wall -Wextra -fno-builtin -fno-rtti
-DFLAGS =
+CCFLAGS += -fno-builtin
+CXXFLAGS += -g -std=c++17 -pipe -pthread -Wall -Wextra -fno-builtin -fno-rtti
+DFLAGS = -DNDEBUG
 OFLAGS = -O3 -flto
-LFLAGS = -L. -L/usr/local/lib/ -Lbncsutil/src/bncsutil/ -LStormLib/build/ -lstorm -lbncsutil -lgmp -lbz2 -lz
+LFLAGS += -pthread -L. -Llib/ -L/usr/local/lib/ -Ldeps/bncsutil/src/bncsutil/ -lgmp -lbz2 -lz -lstorm -lbncsutil
+
+ifeq ($(AURASTATIC), 1)
+	LFLAGS += -static
+endif
+
+ifeq ($(AURALINKMINIUPNP), 0)
+	CXXFLAGS += -DDISABLE_MINIUPNP
+else
+	ifeq ($(AURASTATIC), 1)
+		LFLAGS += -lminiupnpc
+	else
+		LFLAGS += -lminiupnpc
+	endif
+endif
+
+ifeq ($(AURALINKCPR), 0)
+	CXXFLAGS += -DDISABLE_CPR
+else
+	ifeq ($(AURASTATIC), 1)
+		LFLAGS += -lcpr
+	else
+		LFLAGS += -lcpr
+	endif
+endif
+
+ifeq ($(AURALINKDPP), 0)
+	CXXFLAGS += -DDISABLE_DPP
+else
+	ifeq ($(AURASTATIC), 1)
+		LFLAGS += -ldpp
+	else
+		LFLAGS += -ldpp
+	endif
+endif
 
 ifeq ($(ARCH),x86_64)
 	CCFLAGS += -m64
@@ -42,37 +76,59 @@ ifeq ($(SYSTEM),SunOS)
 endif
 
 CCFLAGS += $(OFLAGS) -DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION -I.
-CXXFLAGS += $(OFLAGS) $(DFLAGS) -I. -Ibncsutil/src/ -IStormLib/src/
+CXXFLAGS += $(OFLAGS) $(DFLAGS) -I. -Ilib/ -Ideps/bncsutil/src/ -Ideps/StormLib/src/ -Ideps/miniupnpc/include/ -Icpr-src/include/ -Idpp-src/include/
 
-OBJS = src/bncsutilinterface.o \
-			 src/bnet.o \
-			 src/bnetprotocol.o \
-			 src/config.o \
-			 src/crc32.o \
-			 src/csvparser.o \
-			 src/game.o \
-			 src/gameplayer.o \
-			 src/gameprotocol.o \
-			 src/gameslot.o \
-			 src/gpsprotocol.o \
-			 src/aura.o \
+OBJS = lib/csvparser/csvparser.o \
+			 lib/crc32/crc32.o \
+			 lib/sha1/sha1.o \
+			 src/protocol/bnet_protocol.o \
+			 src/protocol/game_protocol.o \
+			 src/protocol/gps_protocol.o \
+			 src/protocol/vlan_protocol.o \
+			 src/config/config.o \
+			 src/config/config_bot.o \
+			 src/config/config_realm.o \
+			 src/config/config_commands.o \
+			 src/config/config_game.o \
+			 src/config/config_irc.o \
+			 src/config/config_discord.o \
+			 src/config/config_net.o \
 			 src/auradb.o \
+			 src/bncsutil_interface.o \
+			 src/file_util.o \
+			 src/os_util.o \
 			 src/map.o \
-			 src/sha1.o \
+			 src/packed.o \
+			 src/save_game.o \
 			 src/socket.o \
-			 src/stats.o \
+			 src/connection.o \
+			 src/net.o \
+			 src/realm.o \
+			 src/realm_chat.o \
+			 src/async_observer.o \
+			 src/game_seeker.o \
+			 src/game_user.o \
+			 src/game_setup.o \
+			 src/game_slot.o \
+			 src/game_virtual_user.o \
+			 src/game.o \
+			 src/aura.o \
+			 src/cli.o \
+			 src/command.o \
+			 src/discord.o \
 			 src/irc.o \
-			 src/fileutil.o
+			 src/stats.o \
+			 src/w3mmd.o \
 
-COBJS = src/sqlite3.o
+COBJS = lib/sqlite3/sqlite3.o
 
-PROG = aura++
+PROG = aura
 
 all: $(OBJS) $(COBJS) $(PROG)
 	@echo "Used CFLAGS: $(CXXFLAGS)"
 
 $(PROG): $(OBJS) $(COBJS)
-	@$(CXX) -o aura++ $(OBJS) $(COBJS) $(CXXFLAGS) $(LFLAGS)
+	@$(CXX) -o aura $(OBJS) $(COBJS) $(CXXFLAGS) $(LFLAGS)
 	@echo "[BIN] $@ created."
 	@strip "$(PROG)"
 	@echo "[BIN] Stripping the binary."
