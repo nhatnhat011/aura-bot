@@ -169,6 +169,9 @@ protected:
   std::string                                            m_HCLCommandString;              // the "HostBot Command Library" command std::string, used to pass a limited amount of data to specially designed maps
   std::string                                            m_MapPath;                       // store the map path to save in the database on game end
   std::string                                            m_MapSiteURL;
+  std::string                                            m_LastMessage;                   // fix reforged chat twice
+  std::string                                            m_LastMessagePlayer;             //
+  int64_t                                                m_LastMessageTick;               //
   int64_t                                                m_GameTicks;                     // ingame ticks
   int64_t                                                m_CreationTime;                  // GetTime when the game was created
   int64_t                                                m_LastPingTime;                  // GetTime when the last ping was sent

@@ -280,6 +280,9 @@ CGame::CGame(CAura* nAura, shared_ptr<CGameSetup> nGameSetup)
     m_HCLCommandString(nGameSetup->m_HCL.has_value() ? nGameSetup->m_HCL.value() : nGameSetup->m_Map->GetMapDefaultHCL()),
     m_MapPath(nGameSetup->m_Map->GetClientPath()),
     m_MapSiteURL(nGameSetup->m_Map->GetMapSiteURL()),
+    m_LastMessage(""),
+    m_LastMessagePlayer(""),
+    m_LastMessageTick(0),
     m_GameTicks(0),
     m_CreationTime(GetTime()),
     m_LastPingTime(GetTime()),
@@ -5176,118 +5179,127 @@ void CGame::EventUserChatToHost(GameUser::CGameUser* user, CIncomingChatPlayer* 
         return;
       }
 
-      // calculate timestamp
+      if ( m_LastMessage == chatPlayer->GetMessage() && m_LastMessagePlayer == player->GetDisplayName() && GetTicks() - m_LastMessageTick <= 500)
+		    SendChatMessage(user, chatPlayer);
+	    else
+	    {
+		    m_LastMessage = chatPlayer->GetMessage();
+		    m_LastMessagePlayer = player->GetDisplayName();
+		    m_LastMessageTick = GetTicks();
+	    
+        // calculate timestamp
 
-      string chatTypeFragment;
-      if (isLobbyChat) {
-        Log("[" + user->GetDisplayName() + "] " + chatPlayer->GetMessage());
-        if (m_MuteLobby) {
-          shouldRelay = false;
-        }
-      } else {
-        if (extraFlags[0] == CHAT_RECV_ALL) {
-          chatTypeFragment = "[All] ";
-
-          if (m_MuteAll) {
-            // don't relay ingame messages targeted for all users if we're currently muting all
-            // note that any commands will still be processed
+        string chatTypeFragment;
+        if (isLobbyChat) {
+          Log("[" + user->GetDisplayName() + "] " + chatPlayer->GetMessage());
+          if (m_MuteLobby) {
             shouldRelay = false;
           }
-        } else if (extraFlags[0] == CHAT_RECV_ALLY) {
-          chatTypeFragment = "[Allies] ";
-        } else if (extraFlags[0] == CHAT_RECV_OBS) {
-          // [Observer] or [Referees]
-          chatTypeFragment = "[Observer] ";
-        } else if (!m_MuteAll) {
-          // also don't relay in-game private messages if we're currently muting all
-          uint8_t privateTarget = extraFlags[0] - 2;
-          chatTypeFragment = "[Private " + ToDecString(privateTarget) + "] ";
+        } else {
+          if (extraFlags[0] == CHAT_RECV_ALL) {
+            chatTypeFragment = "[All] ";
+
+            if (m_MuteAll) {
+              // don't relay ingame messages targeted for all users if we're currently muting all
+              // note that any commands will still be processed
+              shouldRelay = false;
+            }
+          } else if (extraFlags[0] == CHAT_RECV_ALLY) {
+            chatTypeFragment = "[Allies] ";
+          } else if (extraFlags[0] == CHAT_RECV_OBS) {
+            // [Observer] or [Referees]
+            chatTypeFragment = "[Observer] ";
+          } else if (!m_MuteAll) {
+            // also don't relay in-game private messages if we're currently muting all
+            uint8_t privateTarget = extraFlags[0] - 2;
+            chatTypeFragment = "[Private " + ToDecString(privateTarget) + "] ";
+          }
+
+          Log(chatTypeFragment + "[" + user->GetDisplayName() + "] " + chatPlayer->GetMessage());
         }
 
-        Log(chatTypeFragment + "[" + user->GetDisplayName() + "] " + chatPlayer->GetMessage());
-      }
-
-      // handle bot commands
-      {
-        CRealm* realm = user->GetRealm(false);
-        CCommandConfig* commandCFG = realm ? realm->GetCommandConfig() : m_Aura->m_Config.m_LANCommandCFG;
-        const bool commandsEnabled = commandCFG->m_Enabled && (
-          !realm || !(commandCFG->m_RequireVerified && !user->IsRealmVerified())
-        );
-        bool isCommand = false;
-        const uint8_t activeSmartCommand = user->GetSmartCommand();
-        user->ClearSmartCommand();
-        if (commandsEnabled) {
-          const string message = chatPlayer->GetMessage();
-          string cmdToken, command, payload;
-          uint8_t tokenMatch = ExtractMessageTokensAny(message, m_Config.m_PrivateCmdToken, m_Config.m_BroadcastCmdToken, cmdToken, command, payload);
-          isCommand = tokenMatch != COMMAND_TOKEN_MATCH_NONE;
-          if (isCommand) {
-            user->SetUsedAnyCommands(true);
-            // If we want users identities hidden, we must keep bot responses private.
-            if (shouldRelay) {
-              if (!GetIsHiddenPlayerNames()) SendChatMessage(user, chatPlayer);
-              shouldRelay = false;
-            }
-            shared_ptr<CCommandContext> ctx = nullptr;
-            try {
-              ctx = make_shared<CCommandContext>(m_Aura, commandCFG, this, user, !m_MuteAll && !GetIsHiddenPlayerNames() && (tokenMatch == COMMAND_TOKEN_MATCH_BROADCAST), &std::cout);
-            } catch (...) {}
-            if (ctx) ctx->Run(cmdToken, command, payload);
-          } else if (message == "?trigger") {
-            if (shouldRelay) {
-              if (!GetIsHiddenPlayerNames()) SendChatMessage(user, chatPlayer);
-              shouldRelay = false;
-            }
-            SendCommandsHelp(m_Config.m_BroadcastCmdToken.empty() ? m_Config.m_PrivateCmdToken : m_Config.m_BroadcastCmdToken, user, false);
-          } else if (message == "/p" || message == "/ping" || message == "/game") {
-            // Note that when the WC3 client is connected to a realm, all slash commands are sent to the bnet server.
-            // Therefore, these commands are only effective over LAN.
-            if (shouldRelay) {
-              if (!GetIsHiddenPlayerNames()) SendChatMessage(user, chatPlayer);
-              shouldRelay = false;
-            }
-            shared_ptr<CCommandContext> ctx = nullptr;
-            try {
-              ctx = make_shared<CCommandContext>(m_Aura, commandCFG, this, user, false, &std::cout);
-            } catch (...) {}
-            if (ctx) {
-              cmdToken = m_Config.m_PrivateCmdToken;
-              command = message.substr(1);
-              ctx->Run(cmdToken, command, payload);
-            }
-          } else if (isLobbyChat && !user->GetUsedAnyCommands()) {
-            if (shouldRelay) {
-              if (!GetIsHiddenPlayerNames()) SendChatMessage(user, chatPlayer);
-              shouldRelay = false;
-            }
-            if (!CheckSmartCommands(user, message, activeSmartCommand, commandCFG) && !user->GetSentAutoCommandsHelp()) {
-              bool anySentCommands = false;
-              for (const auto& otherPlayer : m_Users) {
-                if (otherPlayer->GetUsedAnyCommands()) anySentCommands = true;
+        // handle bot commands
+        {
+          CRealm* realm = user->GetRealm(false);
+          CCommandConfig* commandCFG = realm ? realm->GetCommandConfig() : m_Aura->m_Config.m_LANCommandCFG;
+          const bool commandsEnabled = commandCFG->m_Enabled && (
+            !realm || !(commandCFG->m_RequireVerified && !user->IsRealmVerified())
+          );
+          bool isCommand = false;
+          const uint8_t activeSmartCommand = user->GetSmartCommand();
+          user->ClearSmartCommand();
+          if (commandsEnabled) {
+            const string message = chatPlayer->GetMessage();
+            string cmdToken, command, payload;
+            uint8_t tokenMatch = ExtractMessageTokensAny(message, m_Config.m_PrivateCmdToken, m_Config.m_BroadcastCmdToken, cmdToken, command, payload);
+            isCommand = tokenMatch != COMMAND_TOKEN_MATCH_NONE;
+            if (isCommand) {
+              user->SetUsedAnyCommands(true);
+              // If we want users identities hidden, we must keep bot responses private.
+              if (shouldRelay) {
+                if (!GetIsHiddenPlayerNames()) SendChatMessage(user, chatPlayer);
+                shouldRelay = false;
               }
-              if (!anySentCommands) {
-                SendCommandsHelp(m_Config.m_BroadcastCmdToken.empty() ? m_Config.m_PrivateCmdToken : m_Config.m_BroadcastCmdToken, user, true);
+              shared_ptr<CCommandContext> ctx = nullptr;
+              try {
+                ctx = make_shared<CCommandContext>(m_Aura, commandCFG, this, user, !m_MuteAll && !GetIsHiddenPlayerNames() && (tokenMatch == COMMAND_TOKEN_MATCH_BROADCAST), &std::cout);
+              } catch (...) {}
+              if (ctx) ctx->Run(cmdToken, command, payload);
+            } else if (message == "?trigger") {
+              if (shouldRelay) {
+                if (!GetIsHiddenPlayerNames()) SendChatMessage(user, chatPlayer);
+                shouldRelay = false;
+              }
+              SendCommandsHelp(m_Config.m_BroadcastCmdToken.empty() ? m_Config.m_PrivateCmdToken : m_Config.m_BroadcastCmdToken, user, false);
+            } else if (message == "/p" || message == "/ping" || message == "/game") {
+              // Note that when the WC3 client is connected to a realm, all slash commands are sent to the bnet server.
+              // Therefore, these commands are only effective over LAN.
+              if (shouldRelay) {
+                if (!GetIsHiddenPlayerNames()) SendChatMessage(user, chatPlayer);
+                shouldRelay = false;
+              }
+              shared_ptr<CCommandContext> ctx = nullptr;
+              try {
+                ctx = make_shared<CCommandContext>(m_Aura, commandCFG, this, user, false, &std::cout);
+              } catch (...) {}
+              if (ctx) {
+                cmdToken = m_Config.m_PrivateCmdToken;
+                command = message.substr(1);
+                ctx->Run(cmdToken, command, payload);
+              }
+            } else if (isLobbyChat && !user->GetUsedAnyCommands()) {
+              if (shouldRelay) {
+                if (!GetIsHiddenPlayerNames()) SendChatMessage(user, chatPlayer);
+                shouldRelay = false;
+              }
+              if (!CheckSmartCommands(user, message, activeSmartCommand, commandCFG) && !user->GetSentAutoCommandsHelp()) {
+                bool anySentCommands = false;
+                for (const auto& otherPlayer : m_Users) {
+                  if (otherPlayer->GetUsedAnyCommands()) anySentCommands = true;
+                }
+                if (!anySentCommands) {
+                  SendCommandsHelp(m_Config.m_BroadcastCmdToken.empty() ? m_Config.m_PrivateCmdToken : m_Config.m_BroadcastCmdToken, user, true);
+                }
               }
             }
           }
-        }
-        if (!isCommand) {
-          user->ClearLastCommand();
-        }
-        if (shouldRelay) {
-          SendChatMessage(user, chatPlayer);
-          shouldRelay = false;
-        }
-        bool logMessage = false;
-        for (const auto& word : m_Config.m_LoggedWords) {
-          if (chatPlayer->GetMessage().find(word) != string::npos) {
-            logMessage = true;
-            break;
+          if (!isCommand) {
+            user->ClearLastCommand();
           }
-        }
-        if (logMessage) {
-          m_Aura->LogPersistent(GetLogPrefix() + chatTypeFragment + "["+ user->GetExtendedName() + "] " + chatPlayer->GetMessage());
+          if (shouldRelay) {
+            SendChatMessage(user, chatPlayer);
+            shouldRelay = false;
+          }
+          bool logMessage = false;
+          for (const auto& word : m_Config.m_LoggedWords) {
+            if (chatPlayer->GetMessage().find(word) != string::npos) {
+              logMessage = true;
+              break;
+            }
+          }
+          if (logMessage) {
+            m_Aura->LogPersistent(GetLogPrefix() + chatTypeFragment + "["+ user->GetExtendedName() + "] " + chatPlayer->GetMessage());
+          }
         }
       }
     }
