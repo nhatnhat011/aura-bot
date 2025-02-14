@@ -1077,16 +1077,13 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
               else
               {
                 const uint32_t warver = stoul(Payload);
-                if (FileExists("mapcfgs/" + to_string(warver) + "/blizzard.j"))
-                {
+                if (warver >= 24 && warver <= 28) {
                   m_Aura->m_LANWar3Version = warver;
-                  if (warver >= 24 && warver <= 28)
-                    m_Aura->m_MapCFGPath = "mapcfgs/";
-                  else
-                    m_Aura->m_MapCFGPath = "mapcfgs/" +  to_string(warver) + "/";
+                  m_Aura->m_MapCFGPath = "mapcfgs/";
+		} else if (FileExists("mapcfgs/" + to_string(warver) + "/blizzard.j")) {
+                  m_Aura->m_MapCFGPath = "mapcfgs/" +  to_string(warver) + "/";
                   QueueChatCommand("Map config for warcraft version set to: " + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
-                }
-                else
+                } else
                   QueueChatCommand("No config file exists for this version", User, Whisper, m_IRC);
               }
             }
