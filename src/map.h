@@ -77,6 +77,7 @@ struct MapEssentials
   std::optional<std::array<uint8_t, 2>> height;
   std::optional<std::array<uint8_t, 4>> weakHash;
   std::optional<std::array<uint8_t, 20>> sha1;
+  std::optional<std::array<uint8_t, 20>> hash;
   std::vector<CGameSlot> slots;
 
   MapEssentials()
@@ -152,6 +153,7 @@ public:
 
 private:
   std::array<uint8_t, 20>   m_MapScriptsSHA1;   // config value: map sha1 (20 bytes)
+  std::array<uint8_t, 20>   m_MapScriptsHash;   // config value: map sha1 (20 bytes)
   std::array<uint8_t, 4>    m_MapSize;   // config value: map size (4 bytes)
   std::array<uint8_t, 4>    m_MapCRC32;   // config value: map info (4 bytes) -> this is the real CRC
   std::array<uint8_t, 4>    m_MapScriptsWeakHash;    // config value: map crc (4 bytes) -> this is not the real CRC, it's the "xoro" value
@@ -187,7 +189,7 @@ private:
   uint8_t                         m_MapFilterType;
   uint8_t                         m_MapFilterSize;
   uint8_t                         m_MapFilterObs;
-  std::array<uint8_t, 4>          m_MapContentMismatch;
+  std::array<uint8_t, 5>          m_MapContentMismatch;
   void*                           m_MapMPQ;
   std::optional<bool>             m_MapMPQResult;
   bool                            m_UseStandardPaths;
@@ -204,7 +206,7 @@ public:
   ~CMap();
 
   [[nodiscard]] inline bool                       GetValid() const { return m_Valid; }
-  [[nodiscard]] inline bool                       HasMismatch() const { return m_MapContentMismatch[0] != 0 || m_MapContentMismatch[1] != 0 || m_MapContentMismatch[2] != 0 || m_MapContentMismatch[3] != 0; }
+  [[nodiscard]] inline bool                       HasMismatch() const { return m_MapContentMismatch[0] != 0 || m_MapContentMismatch[1] != 0 || m_MapContentMismatch[2] != 0 || m_MapContentMismatch[3] != 0 || m_MapContentMismatch[4] != 0; }
   [[nodiscard]] inline bool                       GetMPQSucceeded() const { return m_MapMPQResult.has_value() && m_MapMPQResult.value(); }
   [[nodiscard]] inline bool                       GetMPQErrored() const { return m_MapMPQResult.has_value() && !m_MapMPQResult.value(); }
   [[nodiscard]] inline std::string                GetConfigName() const { return m_CFGName; }
@@ -213,6 +215,7 @@ public:
   [[nodiscard]] inline std::array<uint8_t, 4>     GetMapCRC32() const { return m_MapCRC32; } // <map.crc32>, but also legacy <map_hash>
   [[nodiscard]] inline std::array<uint8_t, 4>     GetMapScriptsWeakHash() const { return m_MapScriptsWeakHash; } // <map.weak_hash>, but also legacy <map_crc>
   [[nodiscard]] inline std::array<uint8_t, 20>    GetMapScriptsSHA1() const { return m_MapScriptsSHA1; } // <map.sha1>
+  [[nodiscard]] inline std::array<uint8_t, 20>    GetMapScriptsHash() const { return m_MapScriptsHash; } // <map.hash>
   [[nodiscard]] std::string                       GetMapURL() const { return m_MapURL; }
   [[nodiscard]] std::string                       GetMapSiteURL() const { return m_MapSiteURL; }
   [[nodiscard]] std::string                       GetMapShortDesc() const { return m_MapShortDesc; }
@@ -282,6 +285,7 @@ public:
   FileChunkTransient                              GetMapFileChunk(size_t start);
   bool                                            UnlinkFile();
   [[nodiscard]] std::string                       CheckProblems();
+  [[nodiscard]] uint32_t                          ChunkedChecksum(uint8_t* data, int32_t length, uint32_t checksum);
 };
 
 [[nodiscard]] inline uint32_t XORRotateLeft(const uint8_t* data, const uint32_t length)

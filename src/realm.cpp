@@ -1360,7 +1360,7 @@ void CRealm::SendGameRefresh(const uint8_t displayMode, CGame* game)
     game->GetUptime(),
     game->GetSourceFilePath(),
     game->GetSourceFileHash(),
-    game->GetSourceFileSHA1(),
+    ((m_Aura->m_GameVersion > 30) ? game->GetSourceFileSHA1() : game->GetSourceFileMapHash()),
     hostCounter,
     game->GetMap()->GetVersionMaxSlots()
   ));

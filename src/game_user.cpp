@@ -507,6 +507,11 @@ bool CGameUser::Update(void* fd, int64_t timeout)
             ++m_PongCounter;
             break;
           }
+
+          case GameProtocol::Magic::W3GS_REFORGED_UNKNOWN: {
+            m_Game->SendAll(Data);
+			      break;
+          }
         }
       }
       else if (Bytes[0] == GPSProtocol::Magic::GPS_HEADER && m_Game->GetIsProxyReconnectable()) {

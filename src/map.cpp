@@ -88,6 +88,7 @@ CMap::CMap(CAura* nAura, CConfig* CFG)
     m_HMCMode(W3HMC_MODE_DISABLED)
 {
   m_MapScriptsSHA1.fill(0);
+  m_MapScriptsHash.fill(0);
   m_MapSize.fill(0);
   m_MapCRC32.fill(0);
   m_MapScriptsWeakHash.fill(0);
@@ -518,6 +519,8 @@ optional<MapEssentials> CMap::ParseMPQ() const
     vector<string> fileList;
     fileList.emplace_back("war3map.j");
     fileList.emplace_back(R"(scripts\war3map.j)");
+    fileList.emplace_back("war3map.lua");
+    fileList.emplace_back(R"(scripts\war3map.lua)");
     fileList.emplace_back("war3map.w3e");
     fileList.emplace_back("war3map.wpm");
     fileList.emplace_back("war3map.doo");
@@ -530,18 +533,33 @@ optional<MapEssentials> CMap::ParseMPQ() const
     for (const auto& fileName : fileList) {
       // don't use scripts\war3map.j if we've already used war3map.j (yes, some maps have both but only war3map.j is used)
 
-      if (foundScript && fileName == R"(scripts\war3map.j)")
+      if (foundScript && (fileName == R"(scripts\war3map.j)" || fileName == "war3map.lua" || fileName == R"(scripts\war3map.lua)"))
         continue;
 
       ReadFileFromArchive(fileContents, fileName);
       if (fileContents.empty()) {
         continue;
       }
-      if (fileName == "war3map.j" || fileName == R"(scripts\war3map.j)") {
+
+			if (m_Aura->m_GameVersion >= 32)  // giant Thank You to Fingon for the checksum algorithm
+			{
+				if (foundScript)
+        {
+				 if (m_Aura->m_GameVersion >= 33) // I found this one out myself
+			  	weakHashVal = ROTL(weakHashVal ^ XORRotateLeft(reinterpret_cast<uint8_t*>(fileContents.data()), fileContents.size()), 3);
+			  else
+			  	weakHashVal = ChunkedChecksum(reinterpret_cast<uint8_t*>(fileContents.data()), fileContents.size(), weakHashVal);
+        }
+        else
+				 	weakHashVal = XORRotateLeft(reinterpret_cast<uint8_t*>(fileContents.data()), fileContents.size());
+			}
+			else
+				weakHashVal = ROTL(weakHashVal ^ XORRotateLeft(reinterpret_cast<uint8_t*>(fileContents.data()), fileContents.size()), 3);
+
+      if (fileName == "war3map.j" || fileName == R"(scripts\war3map.j)" || fileName == "war3map.lua" || fileName == R"(scripts\war3map.lua)") {
         foundScript = true;
       }
 
-      weakHashVal = ROTL(weakHashVal ^ XORRotateLeft(reinterpret_cast<uint8_t*>(fileContents.data()), fileContents.size()), 3);
       m_Aura->m_SHA.Update(reinterpret_cast<uint8_t*>(fileContents.data()), fileContents.size());
     }
 
@@ -558,6 +576,14 @@ optional<MapEssentials> CMap::ParseMPQ() const
     m_Aura->m_SHA.GetHash(mapEssentials->sha1->data());
     DPRINT_IF(LOG_LEVEL_TRACE, "[MAP] calculated <map.sha1 = " + ByteArrayToDecString(mapEssentials->sha1.value()) + ">")
   }
+
+	m_Aura->m_SHA.Reset();
+	m_Aura->m_SHA.Update((uint8_t*)m_MapFileContents->data(), m_MapFileContents->size());
+	m_Aura->m_SHA.Final();
+  mapEssentials->hash.emplace();
+  mapEssentials->hash->fill(0);
+  m_Aura->m_SHA.GetHash(mapEssentials->hash->data());
+	DPRINT_IF(LOG_LEVEL_TRACE, "[MAP] calculated <map.hash = " + ByteArrayToDecString(mapEssentials->hash.value()) + ">")
 
   // try to calculate <map.width>, <map.height>, <map.slot_N>, <map.num_players>, <map.num_teams>, <map.filter_type>
 
@@ -909,7 +935,7 @@ void CMap::Load(CConfig* CFG)
     DPRINT_IF(LOG_LEVEL_TRACE2, "[MAP] MPQ archive ignored/missing/errored");
   }
 
-  array<uint8_t, 4> mapContentMismatch = {0, 0, 0, 0};
+  array<uint8_t, 5> mapContentMismatch = {0, 0, 0, 0, 0};
 
   vector<uint8_t> cfgFileSize = CFG->GetUint8Vector("map.size", 4);
   if (cfgFileSize.empty() == !mapFileSize.has_value()) {
@@ -999,6 +1025,28 @@ void CMap::Load(CConfig* CFG)
     copy_n(mapEssentials->sha1->begin(), 20, m_MapScriptsSHA1.begin());
   } else {
     copy_n(cfgSHA1.begin(), 20, m_MapScriptsSHA1.begin());
+  }
+
+  vector<uint8_t> cfgHash = CFG->GetUint8Vector("map.hash", 20);
+  if (cfgHash.empty() == !(mapEssentials.has_value() && mapEssentials->hash.has_value())) {
+    if (cfgHash.empty()) {
+      CFG->SetFailed();
+      if (m_ErrorMessage.empty()) {
+        if (CFG->Exists("map.hash")) {
+          m_ErrorMessage = "invalid <map.hash> detected";
+        } else {
+          m_ErrorMessage = "cannot calculate <map.hash>";
+        }
+      }
+    } else {
+      mapContentMismatch[4] = memcmp(cfgHash.data(), mapEssentials->hash->data(), 20) != 0;
+      copy_n(cfgHash.begin(), 20, m_MapScriptsHash.begin());
+    }
+  } else if (mapEssentials.has_value() && mapEssentials->hash.has_value()) {
+    CFG->SetUint8Array("map.hash", mapEssentials->hash->data(), 20);
+    copy_n(mapEssentials->hash->begin(), 20, m_MapScriptsHash.begin());
+  } else {
+    copy_n(cfgHash.begin(), 20, m_MapScriptsHash.begin());
   }
 
   if (HasMismatch()) {
@@ -1330,6 +1378,17 @@ string CMap::CheckProblems()
     return m_ErrorMessage;
   }
 
+  if (m_MapScriptsHash.size() != 20)
+  {
+    m_Valid = false;
+    if (m_MapScriptsHash.empty() && GetMPQErrored()) {
+      m_ErrorMessage = "cannot load map file as MPQ archive";
+    } else {
+      m_ErrorMessage = "invalid <map.hash> detected";
+    }
+    return m_ErrorMessage;
+  }
+
   if (m_MapSpeed != MAPSPEED_SLOW && m_MapSpeed != MAPSPEED_NORMAL && m_MapSpeed != MAPSPEED_FAST)
   {
     m_Valid = false;
@@ -1630,4 +1689,16 @@ uint8_t CMap::GetLobbyRace(const CGameSlot* slot) const
   if (isRandomRace) return SLOTRACE_RANDOM;
   // Note: If the slot was never selectable, it isn't promoted to selectable.
   return slot->GetRaceSelectable();
+}
+
+uint32_t CMap::ChunkedChecksum(uint8_t* data, int32_t length, uint32_t checksum)
+{
+	int32_t index = 0;
+	int32_t t = length - 0x400;
+	while (index <= t)
+	{
+		checksum = ROTL(checksum ^ XORRotateLeft(&data[index], 0x400), 3);
+		index += 0x400;
+	}
+	return checksum;
 }

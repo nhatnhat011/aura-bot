@@ -2999,6 +2999,11 @@ array<uint8_t, 20> CGame::GetSourceFileSHA1() const
   return m_Map->GetMapScriptsSHA1();
 }
 
+array<uint8_t, 20> CGame::GetSourceFileMapHash() const
+{
+  return m_Map->GetMapScriptsHash();
+}
+
 array<uint8_t, 2> CGame::GetAnnounceWidth() const
 {
   if (GetIsProxyReconnectable()) {
@@ -4512,7 +4517,7 @@ GameUser::CGameUser* CGame::JoinPlayer(CConnection* connection, CIncomingJoinReq
   // send a map check packet to the new user.
 
   if (m_Aura->m_GameVersion >= 23) {
-    Player->Send(GameProtocol::SEND_W3GS_MAPCHECK(m_MapPath, m_Map->GetMapSize(), m_Map->GetMapCRC32(), m_Map->GetMapScriptsWeakHash(), m_Map->GetMapScriptsSHA1()));
+    Player->Send(GameProtocol::SEND_W3GS_MAPCHECK(m_MapPath, m_Map->GetMapSize(), m_Map->GetMapCRC32(), m_Map->GetMapScriptsWeakHash(), (!(m_Aura->m_GameVersion > 30) ? m_Map->GetMapScriptsSHA1() : m_Map->GetMapScriptsHash()));
   } else {
     Player->Send(GameProtocol::SEND_W3GS_MAPCHECK(m_MapPath, m_Map->GetMapSize(), m_Map->GetMapCRC32(), m_Map->GetMapScriptsWeakHash()));
   }

@@ -90,7 +90,7 @@ namespace GameProtocol
     constexpr uint8_t MAPPARTNOTOK       = 69u; // 0x45 - just a guess, received this packet after forgetting to send a crc in MAPPART (f7 45 0a 00 01 02 01 00 00 00)
     constexpr uint8_t PONG_TO_HOST       = 70u; // 0x46
     constexpr uint8_t INCOMING_ACTION2   = 72u; // 0x48 - received this packet when there are too many actions to fit in W3GS_INCOMING_ACTION
-
+    constexpr uint8_t W3GS_REFORGED_UNKNOWN   = 89u  // 0x59 // test 2/2/2025
     // Orthogonal to above
     constexpr uint8_t W3GS_HEADER        = 247u;// 0xF7
     constexpr uint8_t W3FW_HEADER        = 249u;// 0xF9

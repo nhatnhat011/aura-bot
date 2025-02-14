@@ -391,6 +391,7 @@ public:
   std::string                                            GetSourceFilePath() const;
   std::array<uint8_t, 4>                                 GetSourceFileHash() const;
   std::array<uint8_t, 20>                                GetSourceFileSHA1() const;
+  std::array<uint8_t, 20>                                GetSourceFileMapHash() const;
   std::array<uint8_t, 2>                                 GetAnnounceWidth() const;
   std::array<uint8_t, 2>                                 GetAnnounceHeight() const;
 
