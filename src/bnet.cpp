@@ -1080,7 +1080,9 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
                 if (warver >= 24 && warver <= 28) {
                   m_Aura->m_LANWar3Version = warver;
                   m_Aura->m_MapCFGPath = "mapcfgs/";
+                  QueueChatCommand("Map config for warcraft version set to: " + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
 		} else if (FileExists("mapcfgs/" + to_string(warver) + "/blizzard.j")) {
+                  m_Aura->m_LANWar3Version = warver;
                   m_Aura->m_MapCFGPath = "mapcfgs/" +  to_string(warver) + "/";
                   QueueChatCommand("Map config for warcraft version set to: " + to_string(m_Aura->m_LANWar3Version), User, Whisper, m_IRC);
                 } else
