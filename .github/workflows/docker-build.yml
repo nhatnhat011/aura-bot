@@ -7,7 +7,6 @@ on:
         description: 'Type a tag to run'
         required: true
         default: 'dev'
-    branches: [master, w28]
 
 jobs:
   build-arm64:
