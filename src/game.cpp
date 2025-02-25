@@ -1581,7 +1581,7 @@ void CGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* chat
       if (Relay)
         Send(chatPlayer->GetToPIDs(), m_Protocol->SEND_W3GS_CHAT_FROM_HOST(chatPlayer->GetFromPID(), chatPlayer->GetToPIDs(), chatPlayer->GetFlag(), chatPlayer->GetExtraFlags(), chatPlayer->GetMessage()));
 
-      if ( m_LastMessage == chatPlayer->GetMessage() && m_LastMessagePlayer == player->GetName() && GetTicks() - m_LastMessageTick <= 1000)
+      if ( m_LastMessage == chatPlayer->GetMessage() && m_LastMessagePlayer == player->GetName() && GetTicks() - m_LastMessageTick <= 500)
 		  return;
 	  else
 	  {
