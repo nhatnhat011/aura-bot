@@ -27,7 +27,7 @@
 using namespace std;
 
 CBNETProtocol::CBNETProtocol()
-  : m_ClientToken(std::vector<uint8_t>{220, 1, 203, 7})
+  : m_ClientToken(std::vector<uint8_t>{83, 56, 203, 0})
 {
 }
 
