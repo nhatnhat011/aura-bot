@@ -230,8 +230,6 @@ CAura::CAura(CConfig* CFG)
   m_HostPort       = CFG->GetInt("bot_hostport", 6112);
   m_DefaultMap     = CFG->GetString("bot_defaultmap", "dota");
   m_LANWar3Version = CFG->GetInt("lan_war3version", 27); 
-//  m_LANBonjour = CFG->GetInt("lan_bonjour", 0) != 0;
-//  m_War3Reforged   = CFG->GetInt("lan_war3reforged", 0) != 0; 
   m_NumPlayersToStartGameOver = CFG->GetInt("bot_gameoverplayernumber", 1);
 
   // read the rest of the general configuration

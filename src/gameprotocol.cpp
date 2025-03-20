@@ -226,7 +226,7 @@ CIncomingMapSize* CGameProtocol::RECEIVE_W3GS_MAPSIZE(const std::vector<uint8_t>
 
   return nullptr;
 }
-//test 2/2/2025
+/* test 2/2/2025
 uint32_t CGameProtocol::RECEIVE_W3GS_MAPPARTOK(const std::vector<uint8_t>& data)
 {
 	// DEBUG_Print( "RECEIVED W3GS_MAPPARTOK" );
@@ -244,7 +244,7 @@ uint32_t CGameProtocol::RECEIVE_W3GS_MAPPARTOK(const std::vector<uint8_t>& data)
 
   return 0;
 }
-
+*/
 uint32_t CGameProtocol::RECEIVE_W3GS_PONG_TO_HOST(const std::vector<uint8_t>& data)
 {
   // DEBUG_Print( "RECEIVED W3GS_PONG_TO_HOST" );

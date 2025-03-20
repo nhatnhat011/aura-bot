@@ -592,7 +592,7 @@ std::vector<uint8_t> CBNETProtocol::SEND_SID_AUTH_INFO(uint8_t ver, uint32_t loc
 std::vector<uint8_t> CBNETProtocol::SEND_SID_AUTH_CHECK(const std::vector<uint8_t>& clientToken, const std::vector<uint8_t>& exeVersion, const std::vector<uint8_t>& exeVersionHash, const std::vector<uint8_t>& keyInfoROC, const std::vector<uint8_t>& keyInfoTFT, const string& exeInfo, const string& keyOwnerName)
 {
   std::vector<uint8_t> packet;
-  const std::vector<uint8_t> hashkeym16 = {9, 0, 0, 0};
+  const std::vector<uint8_t> keym16 = {9, 0, 0, 0};
 
   if (clientToken.size() == 4 && exeVersion.size() == 4 && exeVersionHash.size() == 4)
   {
@@ -611,7 +611,7 @@ std::vector<uint8_t> CBNETProtocol::SEND_SID_AUTH_CHECK(const std::vector<uint8_
     AppendByteArrayFast(packet, keyInfoTFT);     // TFT Key Info
     AppendByteArrayFast(packet, exeInfo);        // EXE Info
     AppendByteArrayFast(packet, keyOwnerName);   // CD Key Owner Name
-    AppendByteArrayFast(packet, hashkeym16);     // For M16 server
+    AppendByteArrayFast(packet, keym16);         // Fix M16 server
     AssignLength(packet);
   }
   else
