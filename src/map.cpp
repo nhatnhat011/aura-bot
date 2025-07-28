@@ -492,13 +492,8 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
             {
               ISS.seekg(4, ios::cur);            // number of saves
               ISS.seekg(4, ios::cur);            // editor version
-              if( FileFormat >= 27 )
-              {
-              ISS.seekg(4, ios::cur);           // Game version A
-              ISS.seekg(4, ios::cur);           // Game version B
-              ISS.seekg(4, ios::cur);           // Game version C
-              ISS.seekg(4, ios::cur);           // Game version D
-              }
+              if (FileFormat >= 28)              // game version
+		ISS.seekg(16, ios::cur);
               getline(ISS, GarbageString, '\0'); // map name
               getline(ISS, GarbageString, '\0'); // map author
               getline(ISS, GarbageString, '\0'); // map description
@@ -553,11 +548,17 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
                 ISS.seekg(1, ios::cur);            // custom water tinting alpha value
               }
               if( FileFormat >= 28 )
-                ISS.seekg(4, ios::cur);            // Scripting language
+                ISS.seekg(4, ios::cur);            // LUA toggle
               if( FileFormat >= 29 ) 
                 ISS.seekg(4, ios::cur);            // Supported graphics modes
               if( FileFormat >= 30 )
                 ISS.seekg(4, ios::cur);            // Game data version
+	      if (FileFormat >= 32)
+		{
+		  ISS.seekg(8, std::ios::cur);		// default and max zoom overrides
+		  if (FileFormat >= 33)
+		    ISS.seekg(4, std::ios::cur);	// min zoom override
+		}
 
               ISS.read(reinterpret_cast<char*>(&RawMapNumPlayers), 4); // number of players
               uint32_t ClosedSlots = 0;
