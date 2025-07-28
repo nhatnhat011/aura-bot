@@ -555,9 +555,9 @@ void CMap::Load(CConfig* CFG, const string& nCFGFile)
                 ISS.seekg(4, ios::cur);            // Game data version
 	      if (FileFormat >= 32)
 		{
-		  ISS.seekg(8, std::ios::cur);		// default and max zoom overrides
+		  ISS.seekg(8, ios::cur);		// default and max zoom overrides
 		  if (FileFormat >= 33)
-		    ISS.seekg(4, std::ios::cur);	// min zoom override
+		    ISS.seekg(4, ios::cur);	// min zoom override
 		}
 
               ISS.read(reinterpret_cast<char*>(&RawMapNumPlayers), 4); // number of players
