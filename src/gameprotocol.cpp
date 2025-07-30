@@ -311,7 +311,7 @@ std::vector<uint8_t> CGameProtocol::SEND_W3GS_REJECTJOIN(uint32_t reason)
   return packet;
 }
 
-std::vector<uint8_t> CGameProtocol::SEND_W3GS_PLAYERINFO(uint8_t PID, const string& name, const std::vector<uint8_t>& externalIP, const std::vector<uint8_t>& internalIP)
+std::vector<uint8_t> CGameProtocol::SEND_W3GS_PLAYERINFO(uint8_t war3Version, uint8_t PID, const string& name, const std::vector<uint8_t>& externalIP, const std::vector<uint8_t>& internalIP)
 {
   std::vector<uint8_t> packet;
 
@@ -327,20 +327,20 @@ std::vector<uint8_t> CGameProtocol::SEND_W3GS_PLAYERINFO(uint8_t PID, const stri
     AppendByteArray(packet, PlayerJoinCounter, 4); // player join counter
     packet.push_back(PID);                         // PID
     AppendByteArrayFast(packet, name);             // player name
-    packet.push_back(2);                           // ???
-    packet.push_back(0);                           // ???
+    if (war3Version <= 30)
+    {
+      packet.push_back( 1 );			     // ???
+    }
+    else
+    {
+      packet.push_back(2);                           // ???
+      packet.push_back(0);                           // ???
+    }
     packet.push_back(0);                           // ???
     packet.push_back(2);                           // AF_INET
     packet.push_back(0);                           // AF_INET continued...
     packet.push_back(0);                           // port
     packet.push_back(0);                           // port continued...
-/*    packet.push_back( 1 );			     // ???
-    packet.push_back( 0 );			   // ???
-    packet.push_back( 0 );			   // ???
-    packet.push_back( 2 );		           // AF_INET
-    packet.push_back( 0 );		           // AF_INET continued...
-    packet.push_back( 0 );			   // port
-    packet.push_back( 0 );			   // port continued...  */
     AppendByteArrayFast(packet, externalIP);       // external IP
     AppendByteArray(packet, Zeros, 4);             // ???
     AppendByteArray(packet, Zeros, 4);             // ???
