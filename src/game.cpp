@@ -58,9 +58,9 @@ CGame::CGame(CAura* nAura, CMap* nMap, uint16_t nHostPort, uint8_t nGameState, s
     m_CreatorServer(nCreatorServer),
     m_HCLCommandString(nMap->GetMapDefaultHCL()),
     m_MapPath(nMap->GetMapPath()),
-   /* m_LastMessage(""),
+    m_LastMessage(""),
     m_LastMessagePlayer(""),
-    m_LastMessageTick(0), */
+    m_LastMessageTick(0),
     m_GameTicks(0),
     m_CreationTime(GetTime()),
     m_LastPingTime(GetTime()),
@@ -1573,6 +1573,22 @@ void CGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* chat
 
       // calculate timestamp
 
+      if ((m_MuteAll || m_MuteLobby) && !(chatPlayer->GetMessage()[0] == m_Aura->m_CommandTrigger || chatPlayer->GetMessage()[0] == '/'))
+        Relay = false;
+      else
+        Relay = true;
+
+      if (Relay)
+        Send(chatPlayer->GetToPIDs(), m_Protocol->SEND_W3GS_CHAT_FROM_HOST(chatPlayer->GetFromPID(), chatPlayer->GetToPIDs(), chatPlayer->GetFlag(), chatPlayer->GetExtraFlags(), chatPlayer->GetMessage()));
+
+      if ( m_LastMessage == chatPlayer->GetMessage() && m_LastMessagePlayer == player->GetName() && GetTicks() - m_LastMessageTick <= 500)
+		  return;
+	  else
+	  {
+		m_LastMessage = chatPlayer->GetMessage();
+		m_LastMessagePlayer = player->GetName();
+		m_LastMessageTick = GetTicks();
+	  }
       string MinString = to_string((m_GameTicks / 1000) / 60);
       string SecString = to_string((m_GameTicks / 1000) % 60);
 
@@ -1588,40 +1604,34 @@ void CGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* chat
         {
           // this is an ingame [All] message, print it to the console
 
-          Print2("[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [All] [" + player->GetName() + "] " + chatPlayer->GetMessage());
+          Print2("[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [All] [" + m_LastMessagePlayer + "] " + m_LastMessage);
 
           // don't relay ingame messages targeted for all players if we're currently muting all
           // note that commands will still be processed even when muting all because we only stop relaying the messages, the rest of the function is unaffected
 
-          if (m_MuteAll)
-            Relay = false;
         }
         else
         {
           // this is an ingame [Allies] message, print it to the console
 
-          Print2("[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [Allies] [" + player->GetName() + "] " + chatPlayer->GetMessage());
+          Print2("[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [Allies] [" + m_LastMessagePlayer + "] " + m_LastMessage);
 
           // don't relay ingame messages targeted for all players if we're currently muting all
           // note that commands will still be processed even when muting all because we only stop relaying the messages, the rest of the function is unaffected
 
-          if (m_MuteAll)
-            Relay = false;
         }
       }
       else
       {
         // this is a lobby message, print it to the console
 
-        Print2("[GAME: " + m_GameName + "] [Lobby] [" + player->GetName() + "] " + chatPlayer->GetMessage());
+        Print2("[GAME: " + m_GameName + "] [Lobby] [" + m_LastMessagePlayer + "] " + m_LastMessage);
 
-        if (m_MuteLobby)
-          Relay = false;
       }
 
       // handle bot commands
 
-      const string Message = chatPlayer->GetMessage();
+      const string Message = m_LastMessage;
 
       if (!Message.empty() && (Message[0] == m_Aura->m_CommandTrigger || Message[0] == '/'))
       {
@@ -1645,11 +1655,8 @@ void CGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* chat
         // so if Relay is already false (e.g. because the player is muted) then it cannot be forced back to true here
 
         EventPlayerBotCommand(player, Command, Payload);
-        Relay = true;
       }
 
-      if (Relay)
-        Send(chatPlayer->GetToPIDs(), m_Protocol->SEND_W3GS_CHAT_FROM_HOST(chatPlayer->GetFromPID(), chatPlayer->GetToPIDs(), chatPlayer->GetFlag(), chatPlayer->GetExtraFlags(), chatPlayer->GetMessage()));
     }
     else
     {
