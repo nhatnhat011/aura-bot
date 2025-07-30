@@ -915,7 +915,7 @@ void CGame::SendVirtualHostPlayerInfo(CGamePlayer* player)
 
   const std::vector<uint8_t> IP = {0, 0, 0, 0};
 
-  Send(player, m_Protocol->SEND_W3GS_PLAYERINFO(m_VirtualHostPID, m_VirtualHostName, IP, IP));
+  Send(player, m_Protocol->SEND_W3GS_PLAYERINFO(m_Aura->m_LANWar3Version, m_VirtualHostPID, m_VirtualHostName, IP, IP));
 }
 
 void CGame::SendFakePlayerInfo(CGamePlayer* player)
@@ -926,7 +926,7 @@ void CGame::SendFakePlayerInfo(CGamePlayer* player)
   const std::vector<uint8_t> IP = {0, 0, 0, 0};
 
   for (auto& fakeplayer : m_FakePlayers)
-    Send(player, m_Protocol->SEND_W3GS_PLAYERINFO(fakeplayer, "Troll[" + to_string(fakeplayer) + "]", IP, IP));
+    Send(player, m_Protocol->SEND_W3GS_PLAYERINFO(m_Aura->m_LANWar3Version, fakeplayer, "Troll[" + to_string(fakeplayer) + "]", IP, IP));
 }
 
 void CGame::SendAllActions()
@@ -1440,10 +1440,10 @@ void CGame::EventPlayerJoined(CPotentialPlayer* potential, CIncomingJoinPlayer* 
     {
       // send info about the new player to every other player
 
-      player->Send(m_Protocol->SEND_W3GS_PLAYERINFO(Player->GetPID(), Player->GetName(), Player->GetExternalIP(), Player->GetInternalIP()));
+      player->Send(m_Protocol->SEND_W3GS_PLAYERINFO(m_Aura->m_LANWar3Version, Player->GetPID(), Player->GetName(), Player->GetExternalIP(), Player->GetInternalIP()));
 
       // send info about every other player to the new player
-      Player->Send(m_Protocol->SEND_W3GS_PLAYERINFO(player->GetPID(), player->GetName(), player->GetExternalIP(), player->GetInternalIP()));
+      Player->Send(m_Protocol->SEND_W3GS_PLAYERINFO(m_Aura->m_LANWar3Version, player->GetPID(), player->GetName(), player->GetExternalIP(), player->GetInternalIP()));
     }
   }
 
@@ -4907,7 +4907,7 @@ void CGame::CreateVirtualHost()
 
   const std::vector<uint8_t> IP = {0, 0, 0, 0};
 
-  SendAll(m_Protocol->SEND_W3GS_PLAYERINFO(m_VirtualHostPID, m_VirtualHostName, IP, IP));
+  SendAll(m_Protocol->SEND_W3GS_PLAYERINFO(m_Aura->m_LANWar3Version, m_VirtualHostPID, m_VirtualHostName, IP, IP));
 }
 
 void CGame::DeleteVirtualHost()
@@ -4934,7 +4934,7 @@ void CGame::CreateFakePlayer()
     const uint8_t              FakePlayerPID = GetNewPID();
     const std::vector<uint8_t> IP            = {0, 0, 0, 0};
 
-    SendAll(m_Protocol->SEND_W3GS_PLAYERINFO(FakePlayerPID, "Troll[" + to_string(FakePlayerPID) + "]", IP, IP));
+    SendAll(m_Protocol->SEND_W3GS_PLAYERINFO(m_Aura->m_LANWar3Version, FakePlayerPID, "Troll[" + to_string(FakePlayerPID) + "]", IP, IP));
     m_Slots[SID] = CGameSlot(FakePlayerPID, 100, SLOTSTATUS_OCCUPIED, 0, m_Slots[SID].GetTeam(), m_Slots[SID].GetColour(), m_Slots[SID].GetRace());
     m_FakePlayers.push_back(FakePlayerPID);
     SendAllSlotInfo();
