@@ -329,6 +329,7 @@ std::vector<uint8_t> CGameProtocol::SEND_W3GS_PLAYERINFO(uint8_t PID, const stri
     AppendByteArrayFast(packet, name);             // player name
     packet.push_back(2);                           // ???
     packet.push_back(0);                           // ???
+    packet.push_back(0);                           // ???
     packet.push_back(2);                           // AF_INET
     packet.push_back(0);                           // AF_INET continued...
     packet.push_back(0);                           // port
