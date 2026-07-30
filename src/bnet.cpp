@@ -1398,7 +1398,7 @@ void CBNET::ProcessChatEvent(const CIncomingChatEvent* chatEvent)
 
             QueueChatCommand(Mapname + " is being downloaded", User, Whisper, m_IRC);
 
-            int statusdl = system(("gdown -q --fuzzy -O \"" + m_Aura->m_MapPath + Mapname + "\" \"" + Downurl + "\"").c_str());
+            int statusdl = system(("gdown -q -O \"" + m_Aura->m_MapPath + Mapname + "\" \"" + Downurl + "\"").c_str());
 
             if (statusdl == 0) {
                  QueueChatCommand(Mapname + " has been downloaded", User, Whisper, m_IRC);
